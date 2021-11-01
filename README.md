@@ -37,3 +37,5 @@ override.tf.json
 # Игнорировать файлы .terraformrc и terraform.rc
 .terraformrc
 terraform.rc
+
+# Добавленная новая строчка (Задание №3 дз 2.2)
