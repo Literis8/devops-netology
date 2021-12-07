@@ -45,6 +45,53 @@ Dec 06 13:10:00 vagrant node_exporter[615]: ts=2021-12-06T13:10:00.567Z caller=n
 Dec 06 13:10:00 vagrant node_exporter[615]: ts=2021-12-06T13:10:00.567Z caller=node_exporter.go:199 level=info msg="Listening on" address=:9100
 Dec 06 13:10:00 vagrant node_exporter[615]: ts=2021-12-06T13:10:00.570Z caller=tls_config.go:195 level=info msg="TLS is disabled." http2=false
 ```
+### Доработка:
+>Добрый день!  
+Задание 1  
+Предлагаю уточнить как именно в службу будут передаваться дополнительные опции. Примеры можно посмотреть вот здесь:  
+www.freedesktop.org...ExecStart=  
+unix.stackexchange.com...unit-files  
+stackoverflow.com...-unit-file  
+Замечу, что речь идёт не о переменных окружения, а об опциях (параметрах) запуска службы.
+С уважением,  
+Алексей
+
+1. Файл сервиса изменен на следующее содержание: 
+```
+[Unit]
+Description=Node Exporter
+
+[Service]
+ExecStart=/opt/node_exporter/node_exporter $MY_OPTS
+EnvironmentFile=/etc/default/node_exporter
+
+[Install]
+WantedBy=multi-user.target
+```
+2. в файл `/etc/default/node_exporter` для примера добавлен параметр `MY_OPTS="--log.level=debug"`
+3. После перезапуска сервиса видно что сервис запустился с параметром
+```shell
+root@vagrant:/opt/node_exporter# systemctl status node_exporter
+● node_exporter.service - Node Exporter
+     Loaded: loaded (/etc/systemd/system/node_exporter.service; enabled; vendor preset: enabled)
+     Active: active (running) since Tue 2021-12-07 14:11:18 UTC; 3s ago
+   Main PID: 1651 (node_exporter)
+      Tasks: 4 (limit: 1071)
+     Memory: 2.5M
+     CGroup: /system.slice/node_exporter.service
+             └─1651 /opt/node_exporter/node_exporter --log.level=debug
+
+Dec 07 14:11:18 vagrant node_exporter[1651]: ts=2021-12-07T14:11:18.462Z caller=node_exporter.go:115 level=info collector=thermal_zone
+Dec 07 14:11:18 vagrant node_exporter[1651]: ts=2021-12-07T14:11:18.462Z caller=node_exporter.go:115 level=info collector=time
+Dec 07 14:11:18 vagrant node_exporter[1651]: ts=2021-12-07T14:11:18.462Z caller=node_exporter.go:115 level=info collector=timex
+Dec 07 14:11:18 vagrant node_exporter[1651]: ts=2021-12-07T14:11:18.462Z caller=node_exporter.go:115 level=info collector=udp_queues
+Dec 07 14:11:18 vagrant node_exporter[1651]: ts=2021-12-07T14:11:18.462Z caller=node_exporter.go:115 level=info collector=uname
+Dec 07 14:11:18 vagrant node_exporter[1651]: ts=2021-12-07T14:11:18.462Z caller=node_exporter.go:115 level=info collector=vmstat
+Dec 07 14:11:18 vagrant node_exporter[1651]: ts=2021-12-07T14:11:18.462Z caller=node_exporter.go:115 level=info collector=xfs
+Dec 07 14:11:18 vagrant node_exporter[1651]: ts=2021-12-07T14:11:18.462Z caller=node_exporter.go:115 level=info collector=zfs
+Dec 07 14:11:18 vagrant node_exporter[1651]: ts=2021-12-07T14:11:18.463Z caller=node_exporter.go:199 level=info msg="Listening on" address=:9100
+Dec 07 14:11:18 vagrant node_exporter[1651]: ts=2021-12-07T14:11:18.463Z caller=tls_config.go:195 level=info msg="TLS is disabled." http2=false
+```
 ## 2. Ознакомьтесь с опциями node_exporter и выводом /metrics по-умолчанию. Приведите несколько опций, которые вы бы выбрали для базового мониторинга хоста по CPU, памяти, диску и сети.
 ### Решение:
 Для просмотра метрик можно использовать команду `curl localhost:9100/metrics`
