@@ -651,3 +651,223 @@ Class E
 * [Xgu.ru - wiki по сетевым технологиям](http://xgu.ru/wiki/%D0%9A%D0%B0%D1%82%D0%B5%D0%B3%D0%BE%D1%80%D0%B8%D1%8F:%D0%9A%D0%B0%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9_%D1%83%D1%80%D0%BE%D0%B2%D0%B5%D0%BD%D1%8C)
 * [Краткая справка по работе с утилитой ip](https://access.redhat.com/sites/default/files/attachments/rh_ip_command_cheatsheet_1214_jcs_print.pdf)
 * [Лабораторная от Cisco](https://devnetsandbox.cisco.com/RM/Topology)
+
+## 8. Компьютерные сети (лекция 3)
+### 8.1 Таблица маршрутизации
+**Статические маршруты** прописываются вручную на каждом маршрутизаторе, через который проходит пакет. Например, если на
+пути пакета 10 маршрутизаторов, чтобы добавить 1 маршрут, нужно прописать этот маршрут 10 раз. Преимущества статических 
+маршрутов: не требуются дополнительные протоколы
+
+**Динамические маршруты** распространяются протоколами маршрутизации. Например: RIP, OSPF, BGP. Динамический маршрут
+настраивается один раз на маршрутизаторе источнике (origin) и далее анонсируется по сети автоматически. Преимущество 
+динамических маршрутов: простота администрирования сети.
+
+**Основные правила выбора маршрута (на примере Cisco):**
+1. Маршрут с длинной маской выигрывает. Например: /24 приоритетней чем /18.
+2. У каждого протокола есть приоритет (preference). Чем меньше preference, тем приоритетней маршрут. Например, 
+preference для eBGP = 20, Static = 1.
+3. Внутри одного протокола выигрывает маршрут с лучшей метрикой. Для eBGP, как правило, это атрибут AS-PATH – список
+всех AS на пути к сети. Чем меньше кол-во AS, тем выше приоритет у маршрута.
+
+[Маршрутизаторы с открытым доступом](http://www.routeservers.org/)
+
+Команды добавления маршрутов в Linux (после перезагрузки маршруты исчезнут):
+* `ip route add 172.16.10.0/24 via 192.168.1.1` - Добавление маршрута через шлюз
+* `ip route add 172.16.10.0/24 dev eth0` - Добавление маршрута через интерфейс
+* `ip route add 172.16.10.0/24 dev eth0 metric 100` - Маршрут с метрикой
+* `ip route show 10.0.0.0/8` - Просмотр маршрутов до определенной сети
+* `echo 1 > /proc/sys/net/ipv4/ip_forward` - Разрешить пересылку пакетов
+* `ip -br route` - отобразить маршруты (`-br` сокращенная форма отображения)
+
+В Linux можно настроить несколько таблиц маршрутизации:
+```shell
+cat /etc/iproute2/rt_tables
+#
+# reserved values
+#
+255 local
+254 main
+253 default
+0 unspec
+#
+# local
+#
+```
+По умолчанию, если не указано имя таблицы, используется таблица main.
+
+Постоянные статические маршруты добавляются в файл `/etc/network/interfaces`:
+```shell
+# The management network interface
+auto eth1
+allow-hotplug eth1
+iface eth1 inet static
+ address 172.16.100.10
+ netmask 255.255.255.0
+ post-up ip route add 172.16.100.0/24 dev eth1 src 172.16.100.10 table mgmt
+ post-up ip route add default via 172.16.100.1 dev eth1 table mgmt
+ post-up ip rule add from 172.16.100.10/32 table mgmt
+ post-up ip rule add to 172.16.100.10/32 table mgmt
+```
+
+**Dummy** – виртуальный интерфейс, удобно использовать для анонса маршрутов (аналог loopback на маршрутизаторах).
+```
+echo "dummy" >> /etc/modules
+echo "options dummy numdummies=2" > /etc/modprobe.d/dummy.conf
+
+vim /etc/network/interfaces
+
+auto dummy0
+iface dummy0 inet static
+ address 10.2.2.2/32
+ pre-up ip link add dummy0 type dummy
+ post-down ip link del dummy0
+```
+
+`bird2` – утилита для динамической маршрутизации в Linux
+```shell
+apt install bird2
+systemctl enable bird
+systemctl restart bird
+
+vim /etc/bird/bird.conf
+
+log syslog all;
+protocol kernel {
+ ipv4 {
+ export all; # Default is export none
+ };
+ persist; # Don't remove routes on BIRD shutdown
+}
+protocol device {
+}
+protocol rip {
+ ipv4 {
+ import all;
+ export all;
+ };
+ interface "ens4";
+ interface "ens5";
+}
+protocol direct {
+ ipv4; # Connect to default IPv4 table
+ interface "dummy*";
+}
+```
+
+`birdc` - запустить консоль Bird
+### 8.2 Отказоустойчивость сети
+Дизайн сети в дата-центре:  
+![Дизайн сети в дата-центре](img/saconsp_8_2_1_datacenter.png)
+
+**ECMP** – несколько равнозначных маршрутов
+
+Отказоустойчивость внутри ДЦ:  
+![Отказоустойчивость внутри ДЦ](img/saconsp_8_2_2_faulttolerance.png)
+
+**Сходимость сети** – время требуемое на перестроение маршрутов при падении линка.
+
+BFD протокол:
+* поднимает сессию между соседями в другом протоколе - RIP, OSPF, BGP;
+* BFD заменяет медленный механизм типа keepalive у протоколов маршрутизации;
+* обеспечивает сходимость менее 50ms.
+
+**Anycast** – одинаковые IP на серверах (CDN):
+* Отказоустойчивость снаружи ДЦ, георезервирование ДЦ;
+* Маршрутизация клиента осуществляется к ближайшему серверу;
+* Сервера располагаются, как правило, в разных ДЦ;
+* При отказе одного ДЦ – трафик уйдет в оставшиеся живые ДЦ.
+
+![Anycast](img/saconsp_8_2_3_anycast.png)
+
+First-Hop Redundancy Protocols (VRRP, HSRP) - протокол резервирования шлюза, несколько шлюзов работают под одним IP
+при потере связи с одним маршрут идет через другой.
+![First-Hop Redundancy Protocols](img/saconsp_8_2_4_VRRP-HSRP.gif)
+
+`Keepalived` – реализация VRRP на Linux Сервисы, требующие высокой доступности, обычно используют плавающие IP-адреса. 
+Плавающий IP-адрес может быть автоматически переброшен между несколькими серверами в ходе переключения на резерв 
+из-за выхода из строя основного сервера или для обновления программного обеспечения без простоев.  
+[Пример настройки](https://habr.com/ru/post/524688/)
+### 8.3 L4: TCP/UDP
+![TCP/UDP](img/saconsp_8_2_5_tcp-udp.png)
+
+TCP 3-Way Handshake: SYN, SYN-ACK, ACK:
+![3-Way Handshake](img/saconsp_8_2_6_tcphandshake.png)
+
+**UDP** - работает без установки сессии. UDP используется обычно для протоколов чувствительных к задержке, например,
+RTP для передачи аудио. Также используется для протоколов не чувствительных к потерям пакетов, например, Syslog, SNMP.
+![tcp vs udp](img/saconsp_8_2_7_tcpvsudp.png)
+
+`ss` – Socket Statistics, утилита пришедшая на замену netstat выдает информацию об открытых портах и установленных 
+соединениях
+
+```
+# -n не резолвить имена хостов
+ss -n
+State Recv-Q Send-Q Local Address:Port Peer Address:Port
+ESTAB 0 240 172.31.0.14:22 172.30.10.202:51831
+# порты в ожидании входящего трафика
+ss -l
+State Recv-Q Send-Q Local Address:Port Peer Address:Port
+LISTEN 0 128
+# UDP сокеты
+ss -ua
+State Recv-Q Send-Q Local Address:Port Peer Address:Port
+UNCONN 0 0 172.31.0.255:ntp *:*
+# Показать процесс использующий сокет
+ss -p
+State Recv-Q Send-Q Local Address:Port Peer Address:Port
+ESTAB 0 240 172.31.0.14:ssh 172.30.10.202:51831
+users:(("sshd",13548,3))
+# Фильтр по Source port
+ss -au sport = :123
+State Recv-Q Send-Q Local Address:Port Peer Address:Port
+UNCONN 0 0 172.31.0.255:ntp *:*
+# Статистика
+ss -s
+Total: 43 (kernel 0)
+TCP: 2 (estab 1, closed 0, orphaned 0, synrecv 0, timewait 0/0), ports 0
+Transport Total IP IPv6
+* 0 - -
+RAW 0 0 0
+UDP 4 4 0
+TCP 2 2 0
+```
+### 8.4 Балансировка нагрузки
+`nginx` – возможно использовать как L4 балансировщик
+
+Пример конфигурации Nginx для балансировки нагрузки:
+```shell
+http {
+ upstream backend1 {
+ server 192.168.0.1;
+ server 192.168.0.2;
+ server 192.168.0.3;
+ }
+ server {
+ listen 80;
+ location / {
+ proxy_pass http://backend1;
+ }
+ } }
+# балансировка UDP - DNS
+stream {
+ upstream dns_backends {
+ server 8.8.8.8:53;
+ server 8.8.4.4:53;
+ }
+ server {
+ listen 53 udp;
+ proxy_pass dns_backends;
+ proxy_responses 1;
+ } }
+```
+[Больше примеров](https://blog.listratenkov.com/kak-nastroit-nginx-v-kachestve-balansirovshhika-nagruzki/)
+### 8.5 Документирование сети
+**Netbox** - система управления IP адресами и устройствами. Возможно настроить автоматизацию – импорт IP из
+конфигураций. API для скриптов.
+
+[Примеры схем сетей](https://linkmeup.gitbook.io/sdsm/0.-planirovanie/1.-shemi-seti)
+### 8.6 Дополнительные материалы
+[Все о Networking в Linux](http://linux-ip.net/html/index.html)
+
+[Гайд по TCP/IP](http://www.tcpipguide.com/free/index.htm)
