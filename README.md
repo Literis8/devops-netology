@@ -1,266 +1,232 @@
-# Домашнее задание по лекции "3.8 Компьютерные сети (лекция 3)"
-## 1. Подключитесь к публичному маршрутизатору в интернет. Найдите маршрут к вашему публичному IP
-```shell
-telnet route-views.routeviews.org
-Username: rviews
-show ip route x.x.x.x/32
-show bgp x.x.x.x/32
-```
+#Домашнее задание к занятию "3.9. Элементы безопасности информационных систем"
+## 1. Установите Bitwarden плагин для браузера. Зарегистрируйтесь и сохраните несколько паролей.
 ### Решение:
-```
-route-views>sh ip route 31.135.47.87
-Routing entry for 31.135.40.0/21
-  Known via "bgp 6447", distance 20, metric 0
-  Tag 6939, type external
-  Last update from 64.71.137.241 3w0d ago
-  Routing Descriptor Blocks:
-  * 64.71.137.241, from 64.71.137.241, 3w0d ago
-      Route metric is 0, traffic share count is 1
-      AS Hops 3
-      Route tag 6939
-      MPLS label: none
-route-views>show bgp 31.135.47.87
-BGP routing table entry for 31.135.40.0/21, version 1419588615
-Paths: (23 available, best #16, table default)
-  Not advertised to any peer
-  Refresh Epoch 1
-  57866 9002 9049 48858 48327 48327 48327
-    37.139.139.17 from 37.139.139.17 (37.139.139.17)
-      Origin IGP, metric 0, localpref 100, valid, external
-      Community: 9002:0 9002:64667
-      path 7FE15529E7A8 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  53767 174 31133 48327 48327 48327 48327
-    162.251.163.2 from 162.251.163.2 (162.251.162.3)
-      Origin IGP, localpref 100, valid, external
-      Community: 174:21101 174:22005 53767:5000
-      path 7FE128F6BFA8 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  3333 48858 48858 48327 48327 48327
-    193.0.0.56 from 193.0.0.56 (193.0.0.56)
-      Origin IGP, localpref 100, valid, external
-      Community: 48858:50042
-      Extended Community: RT:48858:50
-      path 7FE13701EC90 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  1351 6939 13094 48327
-    132.198.255.253 from 132.198.255.253 (132.198.255.253)
-      Origin IGP, localpref 100, valid, external
-      path 7FE0AD44AC60 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  20912 3257 28917 28917 28917 28917 28917 28917 28917 48858 48858 48858 48327 48327 48327
-    212.66.96.126 from 212.66.96.126 (212.66.96.126)
-      Origin IGP, localpref 100, valid, external
-      Community: 3257:4000 3257:8133 3257:50001 3257:50110 3257:54901 20912:65004
-      path 7FE0563CE948 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 3
-  3303 6939 13094 48327
-    217.192.89.50 from 217.192.89.50 (138.187.128.158)
-      Origin IGP, localpref 100, valid, external
-      Community: 3303:1006 3303:1021 3303:1030 3303:3067 6939:7040 6939:8752 6939:9002
-      path 7FE043ADC9F8 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  1221 4637 31133 48327 48327 48327 48327
-    203.62.252.83 from 203.62.252.83 (203.62.252.83)
-      Origin IGP, localpref 100, valid, external
-      path 7FE10F00A648 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  2497 1299 48858 48327 48327 48327
-    202.232.0.2 from 202.232.0.2 (58.138.96.254)
-      Origin IGP, localpref 100, valid, external
-      path 7FE111406930 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  3549 3356 9002 9002 9002 9002 9002 9049 48858 48327 48327 48327
-    208.51.134.254 from 208.51.134.254 (67.16.168.191)
-      Origin IGP, metric 0, localpref 100, valid, external
-      Community: 3356:2 3356:22 3356:100 3356:123 3356:503 3356:903 3356:2067 3549:2581 3549:30840
-      path 7FE15051FA10 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  3356 9002 9002 9002 9002 9002 9049 48858 48327 48327 48327
-    4.68.4.46 from 4.68.4.46 (4.69.184.201)
-      Origin IGP, metric 0, localpref 100, valid, external
-      Community: 3356:2 3356:22 3356:100 3356:123 3356:503 3356:903 3356:2067
-      path 7FE055CAC0B8 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  701 1299 48858 48327 48327 48327
-    137.39.3.55 from 137.39.3.55 (137.39.3.55)
-      Origin IGP, localpref 100, valid, external
-      path 7FE0C57363B8 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  101 11164 2603 31133 48327 48327 48327 48327
-    209.124.176.223 from 209.124.176.223 (209.124.176.223)
-      Origin IGP, localpref 100, valid, external
-      Community: 0:714 0:2854 0:3216 0:5580 0:6461 0:6939 0:8075 0:8359 0:9002 0:12389 0:12876 0:12989 0:13335 0:15169 0:16265 0:16276 0:16302 0:16509 0:16
-625 0:20485 0:20764 0:20940 0:21859 0:22697 0:24940 0:32338 0:32590 0:33438 0:33891 0:39832 0:42668 0:46489 0:47541 0:47542 0:49544 0:49981 0:56550 0:56630
- 0:57976 0:60280 101:20100 101:22100 2603:302 2603:666 2603:65100 11164:1170 11164:7880
-      Extended Community: RT:101:22100
-      path 7FE0AB501AF8 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  7018 1299 48858 48327 48327 48327
-    12.0.1.63 from 12.0.1.63 (12.0.1.63)
-      Origin IGP, localpref 100, valid, external
-      Community: 7018:5000 7018:37232
-      path 7FE1003BF670 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  7660 2516 3257 28917 28917 28917 28917 28917 28917 28917 48858 48858 48858 48327 48327 48327
-    203.181.248.168 from 203.181.248.168 (203.181.248.168)
-      Origin IGP, localpref 100, valid, external
-      Community: 2516:1030 7660:9003
-      path 7FE14DE70400 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  49788 12552 48858 48327 48327 48327
-    91.218.184.60 from 91.218.184.60 (91.218.184.60)
-      Origin IGP, localpref 100, valid, external
-      Community: 12552:12000 12552:12600 12552:12601 12552:22000
-      Extended Community: 0x43:100:1
-      path 7FE153B27A58 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  6939 13094 48327
-    64.71.137.241 from 64.71.137.241 (216.218.252.164)
-      Origin IGP, localpref 100, valid, external, best
-      path 7FE0DBCF1A68 RPKI State not found
-      rx pathid: 0, tx pathid: 0x0
-  Refresh Epoch 1
-  3561 3910 3356 9002 9002 9002 9002 9002 9049 48858 48327 48327 48327
-    206.24.210.80 from 206.24.210.80 (206.24.210.80)
-      Origin IGP, localpref 100, valid, external
-      path 7FE0215A92F8 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 2
-  8283 1299 48858 48327 48327 48327
-    94.142.247.3 from 94.142.247.3 (94.142.247.3)
-      Origin IGP, metric 0, localpref 100, valid, external
-      Community: 1299:30000 8283:1 8283:101
-      unknown transitive attribute: flag 0xE0 type 0x20 length 0x18
-        value 0000 205B 0000 0000 0000 0001 0000 205B
-              0000 0005 0000 0001
-      path 7FE0C0772648 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  20130 6939 13094 48327
-    140.192.8.16 from 140.192.8.16 (140.192.8.16)
-      Origin IGP, localpref 100, valid, external
-      path 7FE115E65D38 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  852 31133 48327 48327 48327 48327
-    154.11.12.212 from 154.11.12.212 (96.1.209.43)
-      Origin IGP, metric 0, localpref 100, valid, external
-      path 7FE0FD7E9120 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  4901 6079 31133 48327 48327 48327 48327
-    162.250.137.254 from 162.250.137.254 (162.250.137.254)
-      Origin IGP, localpref 100, valid, external
-      Community: 65000:10100 65000:10300 65000:10400
-      path 7FE038421F80 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  3257 28917 28917 28917 28917 28917 28917 28917 48858 48858 48858 48327 48327 48327
-    89.149.178.10 from 89.149.178.10 (213.200.83.26)
-      Origin IGP, metric 10, localpref 100, valid, external
-      Community: 3257:4000 3257:8133 3257:50001 3257:50110 3257:54901
-      path 7FE0C3D9EF70 RPKI State not found
-      rx pathid: 0, tx pathid: 0
-  Refresh Epoch 1
-  19214 174 31133 48327 48327 48327 48327
-    208.74.64.40 from 208.74.64.40 (208.74.64.40)
-      Origin IGP, localpref 100, valid, external
-      Community: 174:21101 174:22005
-      path 7FE0E48BEE30 RPKI State not found
-      rx pathid: 0, tx pathid: 0
+![](homeworks/img/ex3.9-img1.png)
 
-```
-## 2. Создайте dummy0 интерфейс в Ubuntu. Добавьте несколько статических маршрутов. Проверьте таблицу маршрутизации.
+Но для себя я уже давно использую KeePass:  
+![](homeworks/img/ex3.9-img2.png)
+## 2. Установите Google authenticator на мобильный телефон. Настройте вход в Bitwarden аккаунт через Google authenticator OTP.
+### Решение:
+Настроено:  
+![](homeworks/img/ex3.9-img3.png)
+## 3. Установите apache2, сгенерируйте самоподписанный сертификат, настройте тестовый сайт для работы по HTTPS.
 ### Решение:
 ```shell
-vagrant@vagrant:~$ sudo vim /etc/netplan/02-dummy.yaml
+vagrant@vagrant:~$ sudo a2enmod ssl
+Considering dependency setenvif for ssl:
+Module setenvif already enabled
+Considering dependency mime for ssl:
+Module mime already enabled
+Considering dependency socache_shmcb for ssl:
+Enabling module socache_shmcb.
+Enabling module ssl.
+See /usr/share/doc/apache2/README.Debian.gz on how to configure SSL and create self-signed certificates.
+To activate the new configuration, you need to run:
+  systemctl restart apache2
 
-network:
-  version: 2
-  renderer: networkd
-  bridges:
-    dummy0:
-      dhcp4: no
-      dhcp6: no
-      accept-ra: no
-      interfaces: [ ]
-      addresses:
-        - 169.254.1.1/32
+vagrant@vagrant:~$ sudo systemctl restart apache2
 
-vagrant@vagrant:~$ sudo netplan apply
-vagrant@vagrant:~$ ip add
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-    inet 127.0.0.1/8 scope host lo
-       valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host
-       valid_lft forever preferred_lft forever
-2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 08:00:27:73:60:cf brd ff:ff:ff:ff:ff:ff
-    inet 10.0.2.15/24 brd 10.0.2.255 scope global dynamic eth0
-       valid_lft 86368sec preferred_lft 86368sec
-    inet6 fe80::a00:27ff:fe73:60cf/64 scope link
-       valid_lft forever preferred_lft forever
-3: dummy0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UNKNOWN group default qlen 1000
-    link/ether f2:d7:3c:14:ba:28 brd ff:ff:ff:ff:ff:ff
-    inet 169.254.1.1/32 scope global dummy0
-       valid_lft forever preferred_lft forever
-    inet6 fe80::f0d7:3cff:fe14:ba28/64 scope link
-       valid_lft forever preferred_lft forever
+vagrant@vagrant:~$ sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+> -keyout /etc/ssl/private/apache-selfsigned.key \
+> -out /etc/ssl/certs/apache-selfsigned.crt \
+> -subj "/C=RU/ST=Kuzbass/L=Novokuznetsk/O=None/OU=None/CN=www.examlple.com"
+Generating a RSA private key
+...........+++++
+.........................................................................................................................................+++++
+writing new private key to '/etc/ssl/private/apache-selfsigned.key'
+-----
+
+vagrant@vagrant:~$ sudo vim /etc/apache2/sites-available/netology_homework.conf
+<VirtualHost *:443>
+  ServerName netology_homework
+  DocumentRoot /var/www/netology_homework
+
+  SSLEngine on
+  SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
+  SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
+</VirtualHost>
+
+sudo vim /var/www/netology_homework/index.html
+<H1>This is a test for HTTPS conection</H1>
+
+vagrant@vagrant:~$ sudo a2ensite netology_homework.conf
+Enabling site netology_homework.
+To activate the new configuration, you need to run:
+  systemctl reload apache2
+
+vagrant@vagrant:~$ sudo apache2ctl configtest
+Syntax OK
+
+sudo systemctl reload apache2
+
 ```
-## 3. Проверьте открытые TCP порты в Ubuntu, какие протоколы и приложения используют эти порты? Приведите несколько примеров.
+![](homeworks/img/ex3.9-img4.png)
+
+"example" - не правильно написал ☺
+## 4. Проверьте на TLS уязвимости произвольный сайт в интернете (кроме сайтов МВД, ФСБ, МинОбр, НацБанк, РосКосмос, РосАтом, РосНАНО и любых госкомпаний, объектов КИИ, ВПК ... и тому подобное).
+###Решение:
+```shell
+vagrant@vagrant:~/testssl.sh$ ./testssl.sh -U --sneaky https://soroezhka.ru/
+
+###########################################################
+    testssl.sh       3.1dev from https://testssl.sh/dev/
+    (4a358e0 2022-01-06 21:17:40 -- )
+
+      This program is free software. Distribution and
+             modification under GPLv2 permitted.
+      USAGE w/o ANY WARRANTY. USE IT AT YOUR OWN RISK!
+
+       Please file bugs @ https://testssl.sh/bugs/
+
+###########################################################
+
+ Using "OpenSSL 1.0.2-chacha (1.0.2k-dev)" [~183 ciphers]
+ on vagrant:./bin/openssl.Linux.x86_64
+ (built: "Jan 18 17:12:17 2019", platform: "linux-x86_64")
+
+
+ Start 2022-01-08 08:18:24        -->> 109.111.166.4:443 (soroezhka.ru) <<--
+
+ rDNS (109.111.166.4):   4.166.111.109.sta.211.ru.
+ Service detected:       HTTP
+
+
+ Testing vulnerabilities 
+
+ Heartbleed (CVE-2014-0160)                not vulnerable (OK), no heartbeat extension
+ CCS (CVE-2014-0224)                       not vulnerable (OK)
+ Ticketbleed (CVE-2016-9244), experiment.  not vulnerable (OK), no session ticket extension
+ ROBOT                                     Server does not support any cipher suites that use RSA key transport
+ Secure Renegotiation (RFC 5746)           supported (OK)
+ Secure Client-Initiated Renegotiation     not vulnerable (OK)
+ CRIME, TLS (CVE-2012-4929)                not vulnerable (OK)
+ BREACH (CVE-2013-3587)                    potentially NOT ok, "gzip" HTTP compression detected. - only supplied "/" tested
+                                           Can be ignored for static pages or if no secrets in the page
+ POODLE, SSL (CVE-2014-3566)               not vulnerable (OK)
+ TLS_FALLBACK_SCSV (RFC 7507)              No fallback possible (OK), no protocol below TLS 1.2 offered
+ SWEET32 (CVE-2016-2183, CVE-2016-6329)    not vulnerable (OK)
+ FREAK (CVE-2015-0204)                     not vulnerable (OK)
+ DROWN (CVE-2016-0800, CVE-2016-0703)      not vulnerable on this host and port (OK)
+                                           make sure you don't use this certificate elsewhere with SSLv2 enabled services
+                                           https://censys.io/ipv4?q=488D0F19488F55E7674560EBBADCCDB838ADA8975D16EC8A486E785667A10DDD could help you to find
+ out
+ LOGJAM (CVE-2015-4000), experimental      common prime with 2048 bits detected: RFC7919/ffdhe2048 (2048 bits),
+                                           but no DH EXPORT ciphers
+ BEAST (CVE-2011-3389)                     not vulnerable (OK), no SSL3 or TLS1
+ LUCKY13 (CVE-2013-0169), experimental     not vulnerable (OK)
+ Winshock (CVE-2014-6321), experimental    not vulnerable (OK) - ARIA, CHACHA or CCM ciphers found
+ RC4 (CVE-2013-2566, CVE-2015-2808)        no RC4 ciphers detected (OK)
+
+
+ Done 2022-01-08 08:18:42 [  20s] -->> 109.111.166.4:443 (soroezhka.ru) <<--
+ 
+```
+## 5. Установите на Ubuntu ssh сервер, сгенерируйте новый приватный ключ. Скопируйте свой публичный ключ на другой сервер. Подключитесь к серверу по SSH-ключу.
 ### Решение:
-```
-State    Recv-Q   Send-Q     Local Address:Port     Peer Address:Port   Process
-LISTEN   0        4096             0.0.0.0:111           0.0.0.0:*       users:(("rpcbind",pid=608,fd=4),("systemd",pid=1,fd=83))
-LISTEN   0        511              0.0.0.0:80            0.0.0.0:*       users:(("nginx",pid=1857,fd=6),("nginx",pid=1856,fd=6),("nginx",pid=1855,fd=6))
-LISTEN   0        4096       127.0.0.53%lo:53            0.0.0.0:*       users:(("systemd-resolve",pid=609,fd=13))
-LISTEN   0        128              0.0.0.0:22            0.0.0.0:*       users:(("sshd",pid=865,fd=3))
-ESTAB    0        0              10.0.2.15:22           10.0.2.2:25699   users:(("sshd",pid=1178,fd=4),("sshd",pid=1141,fd=4))
-LISTEN   0        4096                [::]:111              [::]:*       users:(("rpcbind",pid=608,fd=6),("systemd",pid=1,fd=85))
-LISTEN   0        511                 [::]:80               [::]:*       users:(("nginx",pid=1857,fd=7),("nginx",pid=1856,fd=7),("nginx",pid=1855,fd=7))
-LISTEN   0        128                 [::]:22               [::]:*       users:(("sshd",pid=865,fd=4))
+Для задания была создана дополнительная виртуальная машина, и обе машины настроены на `public_network`:  
+192.168.1.117 - в качестве ssh клиента  
+192.168.1.74 - в качестве ssh сервера
+```shell
+### действия на ssh клиенте
+vagrant@vagrant:~$ ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/vagrant/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /home/vagrant/.ssh/id_rsa
+Your public key has been saved in /home/vagrant/.ssh/id_rsa.pub
+The key fingerprint is:
+SHA256:AOyV70Bb42FGGPnWZ0TwkyGa2JuQi2QNCZIjx7eDUIc vagrant@vagrant
+The key's randomart image is:
++---[RSA 3072]----+
+|.+o++..*. ooo    |
+|=.E.++*+*o o.o   |
+|.+ +o+*O++ .+    |
+|  .o+.o+=o. o.   |
+|    ...+S  o     |
+|        .        |
+|                 |
+|                 |
+|                 |
++----[SHA256]-----+
+vagrant@vagrant:~$ ssh-copy-id vagrant@192.168.1.74
+/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/home/vagrant/.ssh/id_rsa.pub"
+The authenticity of host '192.168.1.74 (192.168.1.74)' can't be established.
+ECDSA key fingerprint is SHA256:wSHl+h4vAtTT7mbkj2lbGyxWXWTUf6VUliwpncjwLPM.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+vagrant@192.168.1.74's password:
+
+Number of key(s) added: 1
+
+Now try logging into the machine, with:   "ssh 'vagrant@192.168.1.74'"
+and check to make sure that only the key(s) you wanted were added.
+
+vagrant@vagrant:~$ ssh vagrant@192.168.1.74
+Welcome to Ubuntu 20.04.2 LTS (GNU/Linux 5.4.0-80-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+  System information as of Sat 08 Jan 2022 08:57:43 AM UTC
+
+  System load:  0.01              Processes:             114
+  Usage of /:   2.3% of 61.31GB   Users logged in:       1
+  Memory usage: 16%               IPv4 address for eth0: 10.0.2.15
+  Swap usage:   0%                IPv4 address for eth1: 192.168.1.74
+
+
+This system is built by the Bento project by Chef Software
+More information can be found at https://github.com/chef/bento
+Last login: Sat Jan  8 08:53:28 2022 from 10.0.2.2
+vagrant@vagrant:~$
 
 ```
-Примеры: 80 порт открыт Nginx, 22 порт SSH, 111 порт демоном rpcbind, внутренняя служба разрешения доменных имен на 53 
-порту loopback интерфейса
-## 4. Проверьте используемые UDP сокеты в Ubuntu, какие протоколы и приложения используют эти порты?
+## 6. Переименуйте файлы ключей из задания 5. Настройте файл конфигурации SSH клиента, так чтобы вход на удаленный сервер осуществлялся по имени сервера.
 ### Решение:
-```
-vagrant@vagrant:~$ sudo ss -paun
-State       Recv-Q      Send-Q            Local Address:Port           Peer Address:Port     Process
-UNCONN      0           0                 127.0.0.53%lo:53                  0.0.0.0:*         users:(("systemd-resolve",pid=609,fd=12))
-UNCONN      0           0                10.0.2.15%eth0:68                  0.0.0.0:*         users:(("systemd-network",pid=1405,fd=20))
-UNCONN      0           0                       0.0.0.0:111                 0.0.0.0:*         users:(("rpcbind",pid=608,fd=5),("systemd",pid=1,fd=84))
-UNCONN      0           0                          [::]:111                    [::]:*         users:(("rpcbind",pid=608,fd=7),("systemd",pid=1,fd=86))
+```shell
+vagrant@vagrant:~$ mv id_rsa id_rsa.old
+vagrant@vagrant:~$ mv id_rsa.pub id_rsa.pub.old
+vagrant@vagrant:~$ touch ./.ssh/config
+vagrant@vagrant:~$ vim ./.ssh/config
+
+Host vagrant_sshd
+HostName 192.168.1.74
+Port 22
+IdentityFile ~vagrant/.ssh/id_rsa.old
+
+vagrant@vagrant:~$ ssh vagrant_sshd
+Welcome to Ubuntu 20.04.2 LTS (GNU/Linux 5.4.0-80-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+  System information as of Sat 08 Jan 2022 09:14:05 AM UTC
+
+  System load:  0.01              Processes:             111
+  Usage of /:   2.4% of 61.31GB   Users logged in:       1
+  Memory usage: 16%               IPv4 address for eth0: 10.0.2.15
+  Swap usage:   0%                IPv4 address for eth1: 192.168.1.74
+
+
+This system is built by the Bento project by Chef Software
+More information can be found at https://github.com/chef/bento
+Last login: Sat Jan  8 08:57:44 2022 from 192.168.1.117
+vagrant@vagrant:~$
 
 ```
-Аналогичная внутренняя служба доменных имен на loopback интерфейсе 53 UDP порт, Bootstrap Protocol Client - 68 порт, rpcbind на 111 udp порту
-
-## 5. Используя diagrams.net, создайте L3 диаграмму вашей домашней сети или любой другой сети, с которой вы работали.
+## 7. Соберите дамп трафика утилитой tcpdump в формате pcap, 100 пакетов. Откройте файл pcap в Wireshark.
 ### Решение:
-К сожалению у меня не сохранилась L3 схема с прошлой работы, а на текущей она еще не составлена, так что я изобразил
-вариант типичной схемы с одним удаленным офисом соединенным с центральным по средствам VPN и DMZ сетью в центральном 
-офисе.
+```shell
+vagrant@vagrant:~$ sudo tcpdump -c 100 -i eth1 -w eth1.pcap
+tcpdump: listening on eth1, link-type EN10MB (Ethernet), capture size 262144 bytes
+100 packets captured
+166 packets received by filter
+0 packets dropped by kernel
 
-![](scheme/l3.png)
-
-Но дополнительно могу приложить совмещенную L1-2 схему которую я составлял на прошлой работе:
-
-![](scheme/l1-2.png)
+```
+Далее через scp был выгружен файл на хост машину:  
+![](homeworks/img/ex3.9-img5.png)
