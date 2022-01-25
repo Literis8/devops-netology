@@ -136,5 +136,316 @@ Other commands:
     token          Interact with tokens
 
 ```
-## 4. Cоздайте центр сертификации по инструкции ([ссылка](https://learn.hashicorp.com/tutorials/vault/pki-engine?in=vault/secrets-management)) и выпустите сертификат для использования его в настройке веб-сервера nginx (срок жизни сертификата - месяц).
-### Решение
+## 4. Создайте центр сертификации по инструкции ([ссылка](https://learn.hashicorp.com/tutorials/vault/pki-engine?in=vault/secrets-management)) и выпустите сертификат для использования его в настройке веб-сервера nginx (срок жизни сертификата - месяц).
+### Решение:
+Подготавливаем службу Vault для работы не в dev режиме
+```shell
+vagrant@vagrant:~$ sudo systemctl enable vault
+vagrant@vagrant:~$ sudo systemctl start vault
+vagrant@vagrant:~$ sudo echo "VAULT_ADDR=http://127.0.0.1:8200" >> /etc/environment
+vagrant@vagrant:~$ export VAULT_ADDR=http://127.0.0.1:8200
+vagrant@vagrant:~$ sudo vim /etc/vault.d/vault.hcl
+
+# HTTP listener
+listener "tcp" {
+  address = "127.0.0.1:8200"
+  tls_disable = 1
+}
+# HTTPS listener                                                                                                                                                                                                               
+#listener "tcp" {                                                                                                                                                                                                              
+#  address       = "0.0.0.0:8200"                                                                                                                                                                                              
+#  tls_cert_file = "/opt/vault/tls/tls.crt"                                                                                                                                                                                    
+#  tls_key_file  = "/opt/vault/tls/tls.key"                                                                                                                                                                                    
+#}
+
+vagrant@vagrant:~$ sudo systemctl restart vault
+vagrant@vagrant:~$ vault operator init
+Unseal Key 1: qLAf169genh9MHmwSSDlUlufCgLVr7MMEvrcV+ZuqiBb
+Unseal Key 2: 6YS/4OZjBqWJWXpnU4AC4lxlCc/ewOPowbXUpPgfCPGo
+Unseal Key 3: xJUxreyVO39BVszn6ReUzL1eTQWKc08OJj0rnptz/pIj
+Unseal Key 4: L4BAeiok2TteO4e1vJZXBDvK6NkE6+TMd0t0FmeISWAd
+Unseal Key 5: FDbxb+gv4LV4XQ/XhVcf48qgHrZaRD9MxgdGyNeHXOZR
+
+Initial Root Token: s.o7Ql7yFskt9NI85r9Ltf6tVT
+
+Vault initialized with 5 key shares and a key threshold of 3. Please securely
+distribute the key shares printed above. When the Vault is re-sealed,
+restarted, or stopped, you must supply at least 3 of these keys to unseal it
+before it can start servicing requests.
+
+Vault does not store the generated master key. Without at least 3 keys to
+reconstruct the master key, Vault will remain permanently sealed!
+
+It is possible to generate new unseal keys, provided you have a quorum of
+existing unseal keys shares. See "vault operator rekey" for more information.
+
+vagrant@vagrant:~$ sudo echo "VAULT_TOKEN=s.o7Ql7yFskt9NI85r9Ltf6tVT" >> /etc/environment
+vagrant@vagrant:~$ export VAULT_TOKEN=s.o7Ql7yFskt9NI85r9Ltf6tVT
+vagrant@vagrant:~$ vault operator unseal
+Unseal Key (will be hidden): 
+vagrant@vagrant:~$ vault operator unseal
+Unseal Key (will be hidden): 
+vagrant@vagrant:~$ vault operator unseal
+Unseal Key (will be hidden): 
+Key             Value
+---             -----
+Seal Type       shamir
+Initialized     true
+Sealed          false
+Total Shares    5
+Threshold       3
+Version         1.9.2
+Storage Type    file
+Cluster Name    vault-cluster-88ddf751
+Cluster ID      8e1b4f97-c494-b434-c850-45a4f79ab6fb
+HA Enabled      false
+
+```
+Подготавливаем сертификаты:
+
+Активируем PKI тип секрета для корневого центра сертификации
+```shell
+vagrant@vagrant:~$ vault secrets enable \
+> -path=pki_root_ca \
+> -description="PKI Root CA" \
+> -max-lease-ttl="262800h" \
+> pki
+Success! Enabled the pki secrets engine at: pki_root_ca/
+
+```
+Создаем корневой центра сертификации (CA)
+```shell
+vagrant@vagrant:~$ vault write -format=json pki_root_ca/root/generate/internal \
+> common_name="Root Certificate Authority" \
+> country="Russian Federation" \
+> locality="Novokuznetsk" \
+> postal_code="654000" \
+> organization="Devops-Netology" \
+> ou="IT" \
+> ttl="262800h" > pki-root-ca.json
+```
+Сохраняем корневой сертификат
+```shell
+vagrant@vagrant:~$ cat pki-root-ca.json | jq -r .data.certificate > rootCA.crt
+```
+Публикуем URL’ы для корневого центра сертификации
+```shell
+vagrant@vagrant:~$ vault write pki_root_ca/config/urls \
+> issuing_certificates="$VAULT_ADDR/v1/pki_root_ca/ca" \
+> crl_distribution_points="$VAULT_ADDR/v1/pki_root_ca/crl"
+Success! Data written to: pki_root_ca/config/urls
+```
+Активируем PKI тип секрета для промежуточного центра сертификации
+```shell
+vagrant@vagrant:~$ vault secrets enable \
+> -path=pki_int_ca \
+> -description="PKI Intermediate CA" \
+> -max-lease-ttl="175200h" \
+> pki
+Success! Enabled the pki secrets engine at: pki_int_ca/
+```
+Генерируем запрос на выдачу сертификата для промежуточного центра сертификации
+```shell
+vagrant@vagrant:~$ vault write -format=json pki_int_ca/intermediate/generate/internal \
+> common_name="Intermediate CA" \
+> country="Russian Federation" \
+> locality="Novokuznetsk" \
+> postal_code="654000" \
+> organization="Devops-Netology" \
+> ou="IT" \
+> ttl="175200h" | jq -r '.data.csr' > pki_intermediate_ca.csr
+```
+Отправляем полученный CSR-файл в корневой центр сертификации, получаем сертификат для промежуточного центра сертификации.
+```shell
+vagrant@vagrant:~$ vault write -format=json pki_root_ca/root/sign-intermediate \
+> csr=@pki_intermediate_ca.csr \
+> country="Russian Federation" \
+> locality="Novokuznetsk" \
+> postal_code="654000" \
+> organization="Devops-Netology" \
+> ou="IT" \
+> format=pem_bundle \
+> ttl="175200h" | jq -r '.data.certificate' > intermediateCA.cert.pem
+```
+Публикуем подписанный сертификат промежуточного центра сертификации
+```shell
+vagrant@vagrant:~$ vault write pki_int_ca/intermediate/set-signed \
+> certificate=@intermediateCA.cert.pem
+Success! Data written to: pki_int_ca/intermediate/set-signed
+```
+Публикуем URL’ы для промежуточного центра сертификации
+```shell
+vagrant@vagrant:~$ vault write pki_int_ca/config/urls \
+> issuing_certificates="$VAULT_ADDR/v1/pki_int_ca/ca" \
+> crl_distribution_points="$VAULT_ADDR/v1/pki_int_ca/crl"
+Success! Data written to: pki_int_ca/config/urls
+```
+Создаем роль, с помощью которой будем выдавать сертификаты для серверов
+```shell
+vagrant@vagrant:~$ vault write pki_int_ca/roles/example-dot-com-server \
+> country="Russian Federation" \
+> locality="Novokuznetsk" \
+> postal_code="654000" \
+> organization="Devops-Netology" \
+> ou="IT" \
+> allowed_domains="example.com" \
+> allow_subdomains=true \
+> max_ttl="720h" \
+> key_bits="2048" \
+> key_type="rsa" \
+> allow_any_name=false \
+> allow_bare_domains=false \
+> allow_glob_domain=false \
+> allow_ip_sans=true \
+> allow_localhost=false \
+> client_flag=false \
+> server_flag=true \
+> enforce_hostnames=true \
+> key_usage="DigitalSignature,KeyEncipherment" \
+> ext_key_usage="ServerAuth" \
+> require_cn=true
+Success! Data written to: pki_int_ca/roles/example-dot-com-server
+```
+Создаем сертификат на 1 месяц для домена vault.example.com
+```shell
+vagrant@vagrant:~$ vault write -format=json pki_int_ca/issue/example-dot-com-server \
+> common_name="vault.example.com" \
+> alt_names="vault.example.com" \
+> ttl="720h" > vault.example.com.crt
+```
+Сохраняем сертификат в правильном формате
+```shell
+vagrant@vagrant:~$ cat vault.example.com.crt | jq -r .data.certificate > vault.example.com.crt.pem
+vagrant@vagrant:~$ cat vault.example.com.crt | jq -r .data.issuing_ca >> vault.example.com.crt.pem
+vagrant@vagrant:~$ cat vault.example.com.crt | jq -r .data.private_key > vault.example.com.crt.key
+
+```
+## 5. Установите корневой сертификат созданного центра сертификации в доверенные в хостовой системе.
+### Решение:
+![](homeworks/img/cw-img1.png)
+
+## 6. Установите nginx.
+### Решение:
+`vagrant@vagrant:~$ sudo apt install nginx`
+
+## 7. По инструкции ([ссылка](https://nginx.org/en/docs/http/configuring_https_servers.html)) настройте nginx на https, используя ранее подготовленный сертификат:
+* можно использовать стандартную стартовую страницу nginx для демонстрации работы сервера;
+* можно использовать и другой html файл, сделанный вами;
+### Решение:
+содержимое файла `/etc/nginx/sites-available/default`:
+```shell
+server {
+        listen 443 ssl default_server;
+        server_name vault.example.com;
+        ssl_certificate /home/vagrant/vault.example.com.crt.pem;
+        ssl_certificate_key /home/vagrant/vault.example.com.crt.key;
+ 
+        root /var/www/html;
+
+        index index.html index.htm index.nginx-debian.html;
+
+        server_name _;
+
+        location / {
+                try_files $uri $uri/ =404;
+        }
+
+}
+
+```
+
+## 8. Откройте в браузере на хосте https адрес страницы, которую обслуживает сервер nginx.
+### Решение:
+В связи с тем что сертификат выдан на доменное имя vault.example.com, на хостовой машине в файл 
+`C:\Windows\System32\drivers\etc\hosts` была добавлена строчка `10.10.4.141	vault.example.com`
+
+Таким образом внешний вид сайта выглядет так:
+![](homeworks/img/cw-img2.png)
+
+## 9. Создайте скрипт, который будет генерировать новый сертификат в vault:
+* генерируем новый сертификат так, чтобы не переписывать конфиг nginx;
+* перезапускаем nginx для применения нового сертификата.
+### Решение:
+Создаем файл скрипта 
+```shell
+touch ssl_gen.sh
+chmod +x ssl_gen.sh
+```
+со следующим содержимым:
+```shell
+#!/bin/sh
+# Распаковываем vault
+vault operator unseal qLAf169genh9MHmwSSDlUlufCgLVr7MMEvrcV+ZuqiBb
+vault operator unseal 6YS/4OZjBqWJWXpnU4AC4lxlCc/ewOPowbXUpPgfCPGo
+vault operator unseal xJUxreyVO39BVszn6ReUzL1eTQWKc08OJj0rnptz/pIj
+
+cd /home/vagrant/
+# Генерируем сертификат на 30 дней
+vault write -format=json pki_int_ca/issue/example-dot-com-server \
+        common_name="vault.example.com" \
+        alt_names="vault.example.com" \
+        ttl="720h" > vault.example.com.crt
+# Сохраняем сертификат в правильном формате
+cat vault.example.com.crt | jq -r .data.certificate > vault.example.com.crt.pem
+cat vault.example.com.crt | jq -r .data.issuing_ca >> vault.example.com.crt.pem
+cat vault.example.com.crt | jq -r .data.private_key > vault.example.com.crt.key
+
+# Перезапускаем nginx
+sudo systemctl restart nginx
+```
+## 10. Поместите скрипт в crontab, чтобы сертификат обновлялся какого-то числа каждого месяца в удобное для вас время.
+###Решение:
+`# echo "*/5 *   * * *   root    /home/vagrant/ssl_gen.sh" >> /etc/crontab`
+
+Ставим на каждые 5 минут чтобы иметь возможность проверить как отрабатывает и перезагружаем сервер.
+```shell
+Jan 25 10:20:01 vagrant CRON[1088]: (root) CMD (/home/vagrant/ssl_gen.sh)
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.924Z [INFO]  core.cluster-listener.tcp: starting listener: listener_address=0.0.0.0:8201
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.924Z [INFO]  core.cluster-listener: serving cluster requests: cluster_listen_address=[::]:8201
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.928Z [INFO]  core: post-unseal setup starting
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.931Z [INFO]  core: loaded wrapping token key
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.933Z [INFO]  core: successfully setup plugin catalog: plugin-directory="\"\""
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.935Z [INFO]  core: successfully mounted backend: type=system path=sys/
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.935Z [INFO]  core: successfully mounted backend: type=identity path=identity/
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.935Z [INFO]  core: successfully mounted backend: type=pki path=pki_root_ca/
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.936Z [INFO]  core: successfully mounted backend: type=pki path=pki_int_ca/
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.936Z [INFO]  core: successfully mounted backend: type=cubbyhole path=cubbyhole/
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.943Z [INFO]  core: successfully enabled credential backend: type=token path=token/
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.945Z [INFO]  rollback: starting rollback manager
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.945Z [INFO]  core: restoring leases
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.947Z [INFO]  expiration: lease restore complete
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.950Z [INFO]  identity: entities restored
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.950Z [INFO]  identity: groups restored
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.950Z [INFO]  core: post-unseal setup complete
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.950Z [INFO]  core: vault is unsealed
+Jan 25 10:20:01 vagrant vault[650]: 2022-01-25T10:20:01.951Z [INFO]  core: usage gauge collection is disabled
+Jan 25 10:20:02 vagrant systemd[1]: Stopping A high performance web server and a reverse proxy server...
+Jan 25 10:20:02 vagrant systemd[1]: nginx.service: Succeeded.
+Jan 25 10:20:02 vagrant systemd[1]: Stopped A high performance web server and a reverse proxy server.
+Jan 25 10:20:02 vagrant systemd[1]: Starting A high performance web server and a reverse proxy server...
+Jan 25 10:20:02 vagrant systemd[1]: Started A high performance web server and a reverse proxy server.
+Jan 25 10:20:02 vagrant CRON[1082]: (CRON) info (No MTA installed, discarding output)
+Jan 25 10:23:52 vagrant dbus-daemon[633]: [system] Activating via systemd: service name='org.freedesktop.timedate1' unit='dbus-org.freedesktop.timedate1.service' requested by ':1.12' (uid=0 pid=645 comm="/usr/lib/snapd/snapd " label="u
+nconfined")
+Jan 25 10:23:52 vagrant systemd[1]: Starting Time & Date Service...
+Jan 25 10:23:52 vagrant dbus-daemon[633]: [system] Successfully activated service 'org.freedesktop.timedate1'
+Jan 25 10:23:52 vagrant systemd[1]: Started Time & Date Service.
+Jan 25 10:24:22 vagrant systemd[1]: systemd-timedated.service: Succeeded.
+Jan 25 10:25:01 vagrant CRON[1182]: (root) CMD (/home/vagrant/ssl_gen.sh)
+Jan 25 10:25:02 vagrant systemd[1]: Stopping A high performance web server and a reverse proxy server...
+Jan 25 10:25:02 vagrant systemd[1]: nginx.service: Succeeded.
+Jan 25 10:25:02 vagrant systemd[1]: Stopped A high performance web server and a reverse proxy server.
+Jan 25 10:25:02 vagrant systemd[1]: Starting A high performance web server and a reverse proxy server...
+Jan 25 10:25:02 vagrant systemd[1]: Started A high performance web server and a reverse proxy server.
+Jan 25 10:25:02 vagrant CRON[1181]: (CRON) info (No MTA installed, discarding output)
+
+```
+как видно из логов vault распечатывается, nginx перезапускается.
+
+На скриншотах по строке "действителен с" видно что сертификат обновляется:
+
+![](homeworks/img/cw-img3.png)
+
+![](homeworks/img/cw-img4.png)
+
+![](homeworks/img/cw-img5.png)
