@@ -179,7 +179,6 @@ reconstruct the master key, Vault will remain permanently sealed!
 It is possible to generate new unseal keys, provided you have a quorum of
 existing unseal keys shares. See "vault operator rekey" for more information.
 
-vagrant@vagrant:~$ sudo echo "VAULT_TOKEN=s.o7Ql7yFskt9NI85r9Ltf6tVT" >> /etc/environment
 vagrant@vagrant:~$ export VAULT_TOKEN=s.o7Ql7yFskt9NI85r9Ltf6tVT
 vagrant@vagrant:~$ vault operator unseal
 Unseal Key (will be hidden): 
@@ -366,18 +365,25 @@ server {
 * генерируем новый сертификат так, чтобы не переписывать конфиг nginx;
 * перезапускаем nginx для применения нового сертификата.
 ### Решение:
-Создаем файл скрипта 
+Создаем файл скрипта и файл с ключем, на ключ ставим права только на root
 ```shell
-touch ssl_gen.sh
-chmod +x ssl_gen.sh
+vagrant@vagrant:~$ touch ssl_gen.sh
+vagrant@vagrant:~$ chmod +x ssl_gen.sh
+root@vagrant:/home/vagrant# echo "s.o7Ql7yFskt9NI85r9Ltf6tVT" > /root/.vault-token
+root@vagrant:/home/vagrant# chmod 600 /root/.vault-token
 ```
 со следующим содержимым:
 ```shell
-#!/bin/sh
-# Распаковываем vault
-vault operator unseal qLAf169genh9MHmwSSDlUlufCgLVr7MMEvrcV+ZuqiBb
-vault operator unseal 6YS/4OZjBqWJWXpnU4AC4lxlCc/ewOPowbXUpPgfCPGo
-vault operator unseal xJUxreyVO39BVszn6ReUzL1eTQWKc08OJj0rnptz/pIj
+#!/bin/bash
+# заносим токен в переменную
+VAULT_TOKEN=$(cat /root/.vault-token)
+
+#проверяем запечатанность vault в случае если запечатано пишем в лог и останавливаем скрипт.
+vault status &> /dev/null
+if [[ ! $? == 0 ]]
+        then echo "[$(date +'%X %x')]-ERROR: Vault is sealed!" >> /var/log/ssh_gen.log
+        exit
+fi
 
 cd /home/vagrant/
 # Генерируем сертификат на 30 дней
@@ -392,6 +398,7 @@ cat vault.example.com.crt | jq -r .data.private_key > vault.example.com.crt.key
 
 # Перезапускаем nginx
 sudo systemctl restart nginx
+
 ```
 ## 10. Поместите скрипт в crontab, чтобы сертификат обновлялся какого-то числа каждого месяца в удобное для вас время.
 ###Решение:
@@ -449,3 +456,10 @@ Jan 25 10:25:02 vagrant CRON[1181]: (CRON) info (No MTA installed, discarding ou
 ![](homeworks/img/cw-img4.png)
 
 ![](homeworks/img/cw-img5.png)
+
+## Доработка:
+* Из задания 4. была убрана часть `vagrant@vagrant:~$ sudo echo "VAULT_TOKEN=s.o7Ql7yFskt9NI85r9Ltf6tVT" >> /etc/environment` 
+которая сохранял токен в переменные
+* В задание 9 добавлено создание файла с ключем /root/.vault-token
+* В задание 9 изменен скрипт, убраны ключи из тела скрипта, добавлена проверка запечатанности Vault с занесением ошибки
+в лог
