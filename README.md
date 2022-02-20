@@ -37,12 +37,28 @@ for result in result_os.split('\n'):
 
 ### Ваш скрипт:
 ```python
-???
+#!/usr/bin/env python3
+
+import os
+
+path = "D:\\netology\\devops-netology\\"  # вывел путь в отдельную переменную и изменен путь до локального репозитория
+bash_command = ["cd " + path, "git status"]  # путь заменен на переменную
+result_os = os.popen(' && '.join(bash_command)).read()
+# is_change = False данная переменная не используется
+for result in result_os.split('\n'):
+    if result.find('modified') != -1:
+        prepare_result = result.replace('\tmodified:   ', '')
+        print(path + prepare_result.replace("/", "\\"))  # Добавлен полный путь для файла и заменен "/" на "\"
+        # break цикл прерывается после первого найденного изменения
+
 ```
 
 ### Вывод скрипта при запуске при тестировании:
 ```
-???
+C:\Users\sai_ev\AppData\Local\Programs\Python\Python39\python.exe D:/netology/devops-netology/ex4.2.2.py
+D:\netology\devops-netology\README.md
+D:\netology\devops-netology\ex4.2.2.py
+D:\netology\devops-netology\homeworks\ex4.1.md
 ```
 
 ## Обязательная задача 3
@@ -50,12 +66,42 @@ for result in result_os.split('\n'):
 
 ### Ваш скрипт:
 ```python
-???
+#!/usr/bin/env python3
+
+import os
+import sys
+
+#  Вносим путь
+path = os.getcwd()+"\\"
+if len(sys.argv) >= 2:
+    path = sys.argv[1]
+
+#  Проверка наличия .git/
+if not os.path.exists(path + "/.git"):
+    print("ERROR: " + path + " is not GIT directory")
+    exit(1)
+
+bash_command = ["cd " + path, "git status"]  # путь заменен на переменную
+result_os = os.popen(' && '.join(bash_command)).read()
+for result in result_os.split('\n'):
+    if result.find('modified') != -1:
+        prepare_result = result.replace('\tmodified:   ', '')
+        print(path + prepare_result.replace("/", "\\"))
 ```
 
 ### Вывод скрипта при запуске при тестировании:
 ```
-???
+PS D:\netology\devops-netology> python3 .\ex4.2.2.py                      
+D:\netology\devops-netology\README.md
+D:\netology\devops-netology\ex4.2.2.py
+D:\netology\devops-netology\homeworks\ex4.1.md
+PS D:\netology\devops-netology> python3 .\ex4.2.2.py D:\netology\git-test\
+D:\netology\git-test\README.md
+D:\netology\git-test\conspect.md
+PS D:\netology\devops-netology> python3 .\ex4.2.2.py D:\                  
+ERROR: D:\ is not GIT directory
+PS D:\netology\devops-netology> 
+
 ```
 
 ## Обязательная задача 4

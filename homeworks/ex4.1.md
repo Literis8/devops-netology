@@ -117,3 +117,4 @@ vagrant@vagrant:~$ cat /var/log/hostscheck.log
 
 Sun 30 Jan 2022 12:43:30 PM UTC: 192.168.0.1 status is DOWN!
 ```
+
