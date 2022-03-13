@@ -2,7 +2,7 @@
 
 ## 5.1 Введение в виртуализацию. Типы и функции гипервизоров. Обзор рынка вендеров и областей применения.
 
-### <a name=5.1.1>5.1.1 Что такое виртуализация?</a>
+### 5.1.1 Что такое виртуализация?
 **Виртуализация** — это создание изолированных окружений в рамках одного физического устройства (сервера).
 
 Каждое окружение при этом выглядит, как отдельный компьютер со своими характеристиками, такими как:
@@ -583,3 +583,263 @@ node.vm.provision "ansible" do |setup|
   setup.extra_vars = { ansible_user: 'vagrant' }
 end
 ```
+
+## 5.3 Введение. Экосистема. Архитектура. Жизненный цикл Docker контейнера
+### 5.3.1. Введение в Docker
+**Контейнер** — это способ упаковать приложение и все его зависимости в единый образ. Этот образ запускается 
+в изолированной среде, не влияющей на основную операционную систему.
+
+Контейнеры позволяют отделить приложение от инфраструктуры: разработчики просто создают приложение, упаковывают все
+зависимости и настройки в единый образ. Затем этот образ можно запускать на других системах, не беспокоясь, что
+приложение не запустится.
+
+**Docker** — это платформа для разработки, доставки и запуска контейнерных приложений.
+
+Docker позволяет:
+* создавать контейнеры,
+* автоматизировать их запуск и развертывание,
+* управлять жизненным циклом,
+* запускать множество контейнеров на одной хост-машине.
+
+Контейнеризация похожа на виртуализацию, но это не одно и то же. Виртуализация работает как отдельный компьютер 
+со своим виртуальным оборудованием и операционной системой. При этом внутри одной ОС можно запустить другую ОС. В случае
+контейнеризации, виртуальная среда запускается прямо из ядра основной операционной системы и не виртуализирует 
+оборудование. При этом, так как контейнеры не виртуализируют оборудование, они потребляют намного меньше ресурсов.
+
+**Преимущества использования Docker** Контейнеры в целом упрощают работу как программистам, так и инженерам, которые
+развертывают эти приложения:
+* **Docker решает проблемы зависимостей и рабочего окружения.** Контейнеры позволяют упаковать в единый образ приложение
+и все его зависимости: библиотеки, системные утилиты и файлы конфигурации.
+* **Docker упрощает перенос приложения на другую инфраструктуру.** Например, разработчики создают приложение в системе, 
+там все настроено и приложение работает. Когда приложение готово, его нужно перенести в систему тестирования и затем 
+в продуктивную среду. И если в этих системах будет не хватать какой-нибудь зависимости, то приложение не будет работать. 
+В этом случае программистам придется отвлечься от разработки и совместно с командой поддержки разбираться в ситуации.
+Контейнеры позволяют избежать такой проблемы, потому что они содержат в себе все необходимое для запуска приложения.
+
+**Изоляция и безопасность Docker:** контейнер — это набор процессов, изолированных от основной операционной системы.
+Приложения работают только внутри контейнеров, и не имеют доступа к основной операционной системе. Это повышает 
+безопасность приложений, потому что они не смогут случайно или умышленно навредить основной системе. **Если приложение 
+в контейнере завершится с ошибкой или зависнет, это никак не затронет основную ОС.**
+
+### 5.3.2. Экосистема Docker
+#### Компоненты экосистемы Docker
+* **Docker Daemon (Docker демон)** — сервер контейнеров, входящий в состав программных средств Docker. Демон управляет 
+Docker-объектами (сети, хранилища, образы и контейнеры). Демон также может связываться с другими демонами для управления
+сервисами Docker.
+* **Docker Client / CLI (Docker клиент)** — интерфейс взаимодействия пользователя с Docker-демоном. Клиент и Демон — 
+важнейшие компоненты «движка» Докера (DockerEngine). Клиент Docker может взаимодействовать с несколькими демонами.
+* **Docker Image (Docker образ)** — файл, включающий зависимости, сведения, конфигурацию для дальнейшего развертывания 
+и инициализации контейнера.
+* **Dockerfile (Docker файл)** — описание правил (манифест) сборки образа, в котором первая строка указывает на базовый
+образ. Последующие команды выполняют копирование файлов и установку программ для создания определенной среды разработки 
+со своим набором переменных окружения и прочих параметров.
+* **Docker Container (Docker контейнер)** — это легкий, автономный исполняемый пакет программного обеспечения, который
+включает в себя все необходимое для запуска приложения: код, среду выполнения, системные инструменты, системные 
+библиотеки и настройки.
+* **Volume (Том хранения данных)** — эмуляция файловой системы для осуществления операций чтения и записи. Она создается
+автоматически с контейнером, поскольку некоторые приложения осуществляют персистентное хранение данных.
+* **Docker Registry (Реестр Docker контейнеров)** — зарезервированный сервер, используемый для хранения docker-образов.
+* **Docker Trusted Registry (Доверенный реестр Docker или DTR)** — служба docker-реестра для инсталляции на локальном
+компьютере или сети компании.
+* **Docker Hub (Docker Хаб)** — общедоступный и бесплатный репозиторий, предназначенный для хранения образов с различным
+программным обеспечением. Доступен по <https://hub.docker.com>
+* **Docker Host (Docker хост)** — среда, на которой запускается Docker Engine в виде системного демона для запуска
+контейнеров с программным обеспечением, указанным в Docker файле.
+* **Docker Networks (Docker сети)** — применяются для организации сетевого взаимодействия между приложениями, 
+развернутыми в контейнерах. Существует несколько режимов работы Docker сети. Например: _bridge_, _host_, _overlay_, 
+_macvlan_ и _none_.
+
+#### Типы режимов работы сети в Docker
+* **Bridge (Мост)** — сетевой драйвер по умолчанию. Если вы не укажете драйвер, этот тип сети, инициализируется
+автоматически. Мостовые сети обычно используются, когда ваши приложения работают в автономных контейнерах, которым
+необходимо обмениваться данными.
+* **Host (Хост)** — применяется для автономных контейнеров, этот тип сети удаляет слой изоляции между контейнером и 
+Docker хостом и напрямую использует сеть хоста.
+* **Overlay (Оверлей)** — оверлейные сети соединяют вместе несколько демонов Docker и позволяют службам Docker Swarm
+взаимодействовать друг с другом в режиме кластера. Это _общий случай логической сети_, создаваемой поверх другой сети.
+Узлы оверлейной сети могут быть связаны либо физическим соединением, либо логическим, для которого в основной сети
+существуют один или несколько соответствующих маршрутов из физических соединений. Эта **стратегия устраняет 
+необходимость выполнять маршрутизацию на уровне ОС** между этими контейнерами.
+* **Macvlan** — сети _Macvlan_ позволяют назначать _MAC-адрес_ контейнеру, чтобы он отображался как физическое 
+устройство в вашей сети. Демон Docker направляет трафик в контейнеры по их MAC-адресам. Использование драйвера macvlan
+иногда является лучшим выбором при работе с устаревшими приложениями, которые ожидают прямого подключения к физической
+сети, а не маршрутизации через сетевой стек Docker хоста.
+* **None** — в этом режиме работы отключаются все сети. Такой режим работы сети обычно используется вместе со сторонними
+сетевыми драйверами. _None недоступен для служб Docker Swarm_. Вы можете установить и использовать сторонние сетевые
+плагины с Docker. Эти плагины доступны в Docker Hub или у сторонних поставщиков. Пример плагина: 
+[weave2](https://www.weave.works/docs/net/latest/install/plugin/plugin-v2/).
+
+**Stateless** — после завершения работы контейнера от него ничего не остается, все созданные им данные уничтожаются.
+
+**Stateful** — после завершения работы контейнера его результат сохраняется во внешних хранилищах (Volumes).
+
+### 5.3.3. Архитектура Docker
+![docker arch](img/virtconsp_3_3_1.svg)
+
+[Подробнее](https://docs.docker.com/get-started/overview)
+
+### 5.3.4. Жизненный цикл Docker-контейнера
+#### Docker CLI (Command Line Interface)
+`docker pull` — Загрузить образ из Docker реестра на Docker хост.
+```shell
+# Загрузка образа Docker контейнера из публичного репозитория hub.docker.com
+$ docker pull hello-world
+Using default tag: latest
+latest: Pulling from library/hello-world
+b8dfde127a29: Pull complete
+Digest: sha256:61bd3cb6014296e214ff4c6407a5a7e7092dfa8eefdbbec539e133e97f63e09f
+Status: Downloaded newer image for hello-world:latest
+docker.io/library/hello-world:latest
+$ docker image ls
+REPOSITORY  TAG     IMAGE ID      CREATED       SIZE
+hello-world latest  d1165f221234  6 months ago  13.3kB
+```
+
+`docker run` — Запуск Docker контейнера из локально реестра на Docker хосте.
+```shell
+# Загрузка образа Docker контейнера из публичного репозитория hub.docker.com
+$ docker run hello-world
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+ (amd64)
+ 3. The Docker daemon created a new container from that image which runs the
+ executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+ to your terminal.
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+Share images, automate workflows, and more with a free Docker ID:
+ https://hub.docker.com/
+
+For more examples and ideas, visit:
+ https://docs.docker.com/get-started/
+```
+
+`docker run -it <container> <shell>` — Запуск Docker контейнера из локально реестра на Docker хосте и вход в него через
+_shell_ (_i_ - интерактивный режим, _t_ - с использованием терминала)
+```shell
+# Запуск образа ubuntu из публичного репозитория hub.docker.com
+$ docker run -it ubuntu bash
+Unable to find image 'ubuntu:latest' locally
+latest: Pulling from library/ubuntu
+35807b77a593: Pull complete
+Digest: sha256:9d6a8699fb5c9c39cf08a0871bd6219f0400981c570894cd8cbea30d3424a31f
+Status: Downloaded newer image for ubuntu:latest
+$ root@b65a0676dd1d:/# cat /etc/*release
+DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=20.04
+DISTRIB_CODENAME=focal
+DISTRIB_DESCRIPTION="Ubuntu 20.04.3 LTS"
+NAME="Ubuntu"
+VERSION="20.04.3 LTS (Focal Fossa)"
+ID=ubuntu
+ID_LIKE=debian
+PRETTY_NAME="Ubuntu 20.04.3 LTS"
+VERSION_ID="20.04"
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+VERSION_CODENAME=focal
+UBUNTU_CODENAME=focal
+root@b65a0676dd1d:/# exit
+```
+
+`docker exec <container> <command>` - Запуск команды в запущенном Docker контейнере.
+```shell
+# Запуск команды в запущенном контейнере, "-d" - запустить в фоновом режиме 
+$ docker run -d nginx
+ba2a5dfd1b05dc380765c877722ac56932376abad4d8bb85927ae35bf101bf98
+$ docker ps
+CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES
+ba2a5dfd1b05 nginx "/docker-entrypoint.…" 4 seconds ago Up 3 seconds 80/tcp objective_yalow
+$ docker exec -it objective_yalow nginx -v
+nginx version: nginx/1.21.3
+```
+
+`docker stop <container>` - Остановка запущенного Docker контейнера.
+```shell
+# Остановка запущенного Docker контейнера.
+$ docker stop objective_yalow
+objective_yalow
+
+$ docker ps
+CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES
+
+$ docker ps -a
+CONTAINER ID  IMAGE       COMMAND                 CREATED         STATUS                    PORTS NAMES
+ba2a5dfd1b05  nginx       "/docker-entrypoint.…"  12 minutes ago  Exited (0) 4 minutes ago        objective_yalow
+b65a0676dd1d  ubuntu      "bash"                  18 minutes ago  Exited (0) 15 minutes ago       flamboyant_gates
+c052919f6d04  hello-world "/hello"                26 minutes ago  Exited (0) 26 minutes ago       practical_mirzakhani
+```
+
+`docker rm <container>` - Удаление остановленного Docker контейнера.
+```shell
+# Удаление остановленного Docker контейнера.
+$ docker rm objective_yalow
+objective_yalow
+
+$ docker ps
+CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES
+
+$ docker ps -a
+CONTAINER ID IMAGE        COMMAND   CREATED        STATUS                     PORTS NAMES
+b65a0676dd1d ubuntu       "bash"    18 minutes ago Exited (0) 15 minutes ago        flamboyant_gates
+c052919f6d04 hello-world  "/hello"  26 minutes ago Exited (0) 26 minutes ago        practical_mirzakhani
+```
+
+`docker rmi <image>` - Удаление образа Docker контейнера.
+```shell
+# Удаление образа Docker контейнера.
+$ docker rmi nginx
+Untagged: nginx:latest
+Untagged: nginx@sha256:853b221d3341add7aaadf5f81dd088ea943ab9c918766e295321294b035f3f3e
+Deleted: sha256:ad4c705f24d392b982b2f0747704b1c5162e45674294d5640cca7076eba2865d
+Deleted: sha256:cf45bd1acd3159a35178bfe8a63f910f010990175050ea6c8c333ba3afaf5123
+Deleted: sha256:a9e7419d7f7c4fe55c85ce08c4f0a8b45abe9b714aa19880f553859797e0332c
+Deleted: sha256:13184aa93ccd585fade03704e048828c29eed86090e7399b208edbe022aaf563
+Deleted: sha256:3161f310d154031dbd57f90c07715335a25a31bcf20a4abf3e040ab86bcac633
+Deleted: sha256:88f95677408c5f02b15064ad1f41a2c74e40e1800cd3536f8fb45b9e6939704b
+Deleted: sha256:d000633a56813933cb0ac5ee3246cf7a4c0205db6290018a169d7cb096581046
+
+$ docker images
+REPOSITORY  TAG     IMAGE ID      CREATED       SIZE
+ubuntu      latest  fb52e22af1b0  2 weeks ago   72.8MB
+hello-world latest  d1165f221234  6 months ago  13.3kB
+```
+
+`docker system prune` - Удаление неиспользуемых Docker образов, остановленных контейнеров, неиспользуемых сетей и весь 
+неиспользуемый кэш.
+```shell
+# Удаление неиспользуемых Docker образов.
+$ docker system prune
+WARNING! This will remove:
+ - all stopped containers
+ - all networks not used by at least one container
+ - all dangling images
+ - all dangling build cache
+Are you sure you want to continue? [y/N] y
+Deleted Containers:
+b65a0676dd1d65025c4954d7b20bca108464d3e347225bf3728fcba896e5dbc3
+c1fda7c70de824e08c98059ab861e73e8d3138c95632c2c939cfc3006168d281
+c0522f9fd4e146844b425246418bf2814072d457aafd151d7f9f3d76d5750412
+d824b31993e9f31770a5acbd90061ba435e5eca5b42ce8e216ea5754dbd54e56
+c052919f6d049ad559a2d2faac5309f1aa28ac932b8cdfc3258fa532f8bf9fd1
+Total reclaimed space: 40B
+
+$ docker image ls
+REPOSITORY  TAG     IMAGE ID      CREATED       SIZE
+ubuntu      latest  fb52e22af1b0  2 weeks ago   72.8MB
+hello-world latest  d1165f221234  6 months ago  13.3kB
+```
+
+#### Docker Exec vs Docker Run 
+
+### 5.3.5. Собираем первый Docker-контейнер
