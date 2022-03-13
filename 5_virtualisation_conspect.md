@@ -841,5 +841,61 @@ hello-world latest  d1165f221234  6 months ago  13.3kB
 ```
 
 #### Docker Exec vs Docker Run 
+`docker exec <container> <comand>` - предназначен для выполнения бинарного файла, отличного от указанного в ENTRYPOINT 
+(если он существует в манифесте образа) в работающем контейнере.
 
+`docker run <container> <comand>` - — предварительно скачивает образ (если образ не обнаружен в локальном реестре) 
+и запускает контейнер из образа. Без дополнительных параметров запускается бинарный файл, указанный в качестве точки 
+входа для выполнения.
+
+#### Вывод диагностической информации Docker контейнера
+`docker logs <container>` — если хотите получить диагностическую информацию из запущенного контейнера.
+```shell
+# Диагностика Docker контейнера.
+$ docker logs --tail 1 stoic_archimedes
+2021/09/19 15:04:15 [notice] 1#1: start worker process 32
+
+$ docker logs -f stoic_archimedes
+/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+10-listen-on-ipv6-by-default.sh: info: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+/docker-entrypoint.sh: Configuration complete; ready for start up
+2021/09/19 15:04:15 [notice] 1#1: using the "epoll" event method
+2021/09/19 15:04:15 [notice] 1#1: nginx/1.21.3
+2021/09/19 15:04:15 [notice] 1#1: built by gcc 8.3.0 (Debian 8.3.0-6)
+2021/09/19 15:04:15 [notice] 1#1: OS: Linux 5.10.25-linuxkit
+2021/09/19 15:04:15 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2021/09/19 15:04:15 [notice] 1#1: start worker processes
+2021/09/19 15:04:15 [notice] 1#1: start worker process 31
+2021/09/19 15:04:15 [notice] 1#1: start worker process 32
+```
+`docker attach <container>` - если необходимо перенаправить поток данных в контейнер.
+```shell
+# Перенаправление потока в Docker контейнер.
+$ docker run -d nginx
+1cff1abd6615d651a5d01a09431ec6a78e040eec6a33b0621a663f7f4fc23584
+
+$ docker ps
+CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES
+1cff1abd6615 nginx "/docker-entrypoint.…" 3 seconds ago Up 2 seconds 80/tcp hopeful_meitner
+
+$ docker attach hopeful_meitner
+^C2021/09/19 15:09:52 [notice] 1#1: signal 2 (SIGINT) received, exiting
+2021/09/19 15:09:52 [notice] 33#33: exiting
+2021/09/19 15:09:52 [notice] 32#32: exiting
+2021/09/19 15:09:52 [notice] 33#33: exit
+2021/09/19 15:09:52 [notice] 32#32: exit
+2021/09/19 15:09:52 [notice] 1#1: signal 17 (SIGCHLD) received from 32
+2021/09/19 15:09:52 [notice] 1#1: worker process 32 exited with code 0
+2021/09/19 15:09:52 [notice] 1#1: signal 17 (SIGCHLD) received from 33
+2021/09/19 15:09:52 [notice] 1#1: worker process 33 exited with code 0
+2021/09/19 15:09:52 [notice] 1#1: exit
+
+$ docker ps
+CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES
+```
 ### 5.3.5. Собираем первый Docker-контейнер
