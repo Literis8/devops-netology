@@ -250,13 +250,13 @@ Xen
 #### Сравнение популярных IaaC инструментов
 Рассмотрим, по какой модели работает каждый из них:  
 
-| Оркестратор | Вендор | **Метод** | **Подход** | Язык |
-| ----------- | ------ | --------- | ---------- | ---- |
-| **Ansible** | RedHat | Push | Declarative,Imperative | Python |
+| Оркестратор   | Вендор    | **Метод** | **Подход**             | Язык   |
+|---------------|-----------|-----------|------------------------|--------|
+| **Ansible**   | RedHat    | Push      | Declarative,Imperative | Python |
 | **Saltstack** | Saltstack | Push/Pull | Declarative,Imperative | Python |
-| **Chef** | Chef | Pull | Declarative,Imperative | Ruby |
-| **Puppet** | Puppet | Pull | Declarative | Ruby |
-| **Terraform** | HashiCorp | Push | Declarative | Golang |
+| **Chef**      | Chef      | Pull      | Declarative,Imperative | Ruby   |
+| **Puppet**    | Puppet    | Pull      | Declarative            | Ruby   |
+| **Terraform** | HashiCorp | Push      | Declarative            | Golang |
 
 ### 5.2.2. Паттерны IaaC
 #### Паттерны
@@ -873,7 +873,7 @@ $ docker logs -f stoic_archimedes
 2021/09/19 15:04:15 [notice] 1#1: start worker process 31
 2021/09/19 15:04:15 [notice] 1#1: start worker process 32
 ```
-`docker attach <container>` - если необходимо перенаправить поток данных в контейнер.
+`docker attach <container>` - если необходимо перенаправить поток данных из контейнера в stdout.
 ```shell
 # Перенаправление потока в Docker контейнер.
 $ docker run -d nginx
@@ -898,4 +898,173 @@ $ docker attach hopeful_meitner
 $ docker ps
 CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES
 ```
+
+#### Сходство с ООП
+Сходство с объектно-ориентированным программированием:
+* **Образы** концептуально подобны _классам_.
+* **Слои** концептуально похожи на _наследование_.
+* **Контейнеры** концептуально похожи на _экземпляры классов_.
+
+#### Использование тегов образов
+* **Теги Docker образов схожи с Git-тегами**. Они представляют собой указатель на образ с соответствующим 
+идентификатором.
+* **Добавление тега не переименовывает образ**, а исключительно добавляет тег.
+
+Пример: при использовании собственного реестра: `docker.mycompany.com/jenkins/jenkins-ant:1.10.5` где
+`docker.mycompany.com/jenkins/jenkins-ant` - это изначальное имя образа, а `1.10.5` — версия. Чтобы выполнить docker 
+pull с указанием тега, нужно указать так:
+```shell
+# Загрузка Docker образа из частного реестра.
+$ docker pull docker.mycompany.com/jenkins/jenkins-ant:1.10.5
+```
+* Образы могут обладать тегами для определения версий или вариантов образа.
+* `docker pull ubuntu` будет ссылаться на _ubuntu:latest_.
+* Тег _latest_ часто является самым последним состоянием (зачастую не стабильным).
+* _ubuntu_ — это по сути: _library/ubuntu_ или _index.docker.io/library/ubuntu_
+
+**Необходимо использовать теги:**
+* при использовании образа в продакшн окружении.
+* чтобы гарантировать, что одна и та же версия будет использоваться везде (на всех окружениях).
+* чтобы получить идемпотентный результат.
+
+**Не стоит использовать теги:**
+* при проведении экспресс-тестирования и прототипирования.
+* при проведении экспериментов.
+* когда вам нужна последняя версия.
+
+#### Как корректно применять тег "latest"?
+* Убедитесь, что вы задали тег в целом и этот тег корректный. _Если тег не задан, то по умолчанию будет использован тег 
+"latest"_.
+* Проблема с тегом "latest" — никто не знает, на что он указывает:
+  * последнее изменение в репозитории?
+  * последний коммит в какой-то ветке? и какой именно?
+  * последний созданный git тег в данном репозитории?
+  * какая-то произвольная версия?
+* Если вы каждый раз перезаписываете "latest", то теряете возможность отката на предыдущую версию.
+* Теги образов должны иметь осмысленные имена, то есть соответствовать ветвям кода, тегам или хэшам.
+
+#### Контекст сборки в Docker
+* **Контекст сборки** — это рабочая директория, содержащая Dockerfile и дополнительные файлы (части сборки). Зачастую,
+это текущая директория `.`, передается в команде при сборке docker образа.
+* Содержание контекста сборки отправляется (в виде архива) **клиентом Docker демону Docker**.
+* Чем больше дискового пространства занимает директория контекста сборки, тем потенциально дольше займет сборка образа.
+
+#### Переименование запущенных контейнеров
+`docker rename <old_name> <new_name>` - переименовать контейнер.
+Это позволяет "освободить" имя, не удаляя текущий (работающий) Docker контейнер.
+```shell
+# Переименование запущенного Docker контейнера.
+$ docker run -d nginx
+f49eb0b8ddac59bc7b34421a86371f788cca733056f08e11bf2a1bac0ad0fe9b
+$ docker ps
+CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES
+f49eb0b8ddac nginx "/docker-entrypoint.…" 4 seconds ago Up 2 seconds 80/tcp eloquent_cannon
+$ docker rename eloquent_cannon nginx_netology
+ 18:46:16 @ ~ []
+$ docker ps
+CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES
+f49eb0b8ddac nginx "/docker-entrypoint.…" 31 seconds ago Up 29 seconds 80/tcp nginx_netology
+```
+#### Подключение локальных директорий к контейнеру (Volumes)
+`docker run -v <local_dir>:<container_dir> --name <container_name> -d <image_name>` - примонтировать локальную
+директорию (volume) к контейнеру
+
+**С помощью подключение локальной директории из хостовой машины в контейнер можно реализовать:**
+* Постоянное хранение данных, полученных в результате запущенного в контейнере приложения.
+* Совместное использование данных в двух и более запущенных контейнерах.
+```shell
+# Подключение локальной директории для использования в Docker контейнере.
+$ docker run -v /local-data:/data-in-container --name container_name -d image-name
+```
+#### Создание и использование сети для запущенных контейнеров
+`docker network create <network-name>` - создать сеть
+
+`docker run -d --name=<container-name> --net=<network-name> <image-name>` - создать контейнер с указанной сетю
+
+`docker network connect <network-name> <container-name>` - подключить сеть к указанному контейнеру.
+
+**Для реализации сетевого соединения между контейнерами:**
+* Создайте новую виртуальную сеть или используйте существующую.
+* Запустите новый контейнер из образа или подключите сеть к уже запущенному контейнеру.
+
+_Возможно подключение контейнера(ов) к одной или нескольким сетям._
+```shell
+# Переименование запущенного Docker контейнера.
+$ docker network create network-name
+$ docker run -d --name=container-name --net=network-name image-name
+$ docker network connect network-name container-name
+```
+
 ### 5.3.5. Собираем первый Docker-контейнер
+#### Dockerfile
+`FROM` - всегда идет первой. Название используемого базового докер образа.
+
+Alpine - сверхлегковесный дистрибутив linux
+
+`RUN` - директива в которой прописываются переменные и команды выполняемые в образе, каждая новая директива запечатывает
+слой образа, рекомендуется после выполнения команд очищать кеш перед следующим слоем (`rm -rf /var/cache/apk/* && rm -rf /root/.cache/pip && rm -rf /root/.cargo`)
+
+`WORKDIR` - рабочая директория по-умолчанию
+
+`CMD` - команда выполняемая при старте контейнера.
+
+Манифест Docker образа в котором будет выполняться Ansible.
+```dockerfile
+FROM alpine:3.14
+
+RUN CARGO_NET_GIT_FETCH_WITH_CLI=1 && \
+    apk --no-cache add \
+      sudo python3 py3-pip openssl ca-certificates sshpass openssh-client rsync git && \
+    apk --no-cache add --virtual build-dependencies python3-dev libffi-dev musl-dev gcc cargo openssl-dev \
+      libressl-dev \
+      build-base && \
+    pip install --upgrade pip wheel && \
+    pip install --upgrade cryptography cffi && \
+    pip install ansible==2.9.24 && \
+    pip install mitogen ansible-lint jmespath && \
+    pip install --upgrade pywinrm && \
+    apk del build-dependencies && \
+    rm -rf /var/cache/apk/* && \
+    rm -rf /root/.cache/pip && \
+    rm -rf /root/.cargo
+
+RUN mkdir /ansible && \
+    mkdir -p /etc/ansible && \
+    echo 'localhost' > /etc/ansible/hosts
+
+WORKDIR /ansible
+
+CMD [ "ansible-playbook", "--version" ]
+```
+
+#### Сборка Docker образа
+`docker build -t <dockerhub_account>/<repo>[:tag] .` - создать образ в репозитории (локальном?)
+
+Собираем Docker образ, в котором будет выполнятся Ansible:
+```shell
+# Сборка Docker образа.
+$ cd /Users/olegbukatchuk/git/netology.ru/virt-homeworks/05-virt-03-docker-usage/src/build/ansible
+
+$ docker build -t olegbukatchuk/ansible:2.9.24 .
+... more output strings)))
+OK: 98 MiB in 69 packages
+Step 3/5 : RUN mkdir /ansible && mkdir -p /etc/ansible && echo 'localhost' >
+/etc/ansible/hosts
+ ---> Running in 05d83f4f0b02
+Removing intermediate container 05d83f4f0b02
+ ---> d6bbad65c025
+Step 4/5 : WORKDIR /ansible
+ ---> Running in 2d744a795644
+Removing intermediate container 2d744a795644
+ ---> 6788cf704b9c
+Step 5/5 : CMD [ "ansible-playbook", "--version" ]
+ ---> Running in 81d1f8ad28af
+Removing intermediate container 81d1f8ad28af
+ ---> b5878eb55f00
+Successfully built b5878eb55f00
+Successfully tagged olegbukatchuk/ansible:2.9.24
+```
+```shell
+# !!! Lifehack: verbose mode !!!
+$ DOCKER_BUILDKIT=0 docker build -t olegbukatchuk/ansible:2.9.24 .
+```
