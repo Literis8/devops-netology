@@ -873,7 +873,7 @@ $ docker logs -f stoic_archimedes
 2021/09/19 15:04:15 [notice] 1#1: start worker process 31
 2021/09/19 15:04:15 [notice] 1#1: start worker process 32
 ```
-`docker attach <container>` - если необходимо перенаправить поток данных из контейнера в stdout.
+`docker attach <container>` - если необходимо перенаправить поток из контейнера в stdout.
 ```shell
 # Перенаправление потока в Docker контейнер.
 $ docker run -d nginx
@@ -1067,4 +1067,25 @@ Successfully tagged olegbukatchuk/ansible:2.9.24
 ```shell
 # !!! Lifehack: verbose mode !!!
 $ DOCKER_BUILDKIT=0 docker build -t olegbukatchuk/ansible:2.9.24 .
+```
+
+#### Загрузка в публичный реестр
+Выгружаем Docker образ в публичный [реестр](http://hub.docker.com/)
+```shell
+# Авторизация в публичном реестре Docker Hub.
+$ docker login -u olegbukatchuk
+Password:
+Login Succeeded
+$ docker push olegbukatchuk/ansible:2.9.24
+The push refers to repository [docker.io/olegbukatchuk/ansible]
+444dd64430d4: Pushed
+fb7eb8195ff4: Pushed
+e2eb06d8af82: Mounted from library/alpine
+2.9.24: digest: sha256:01460d9c51dddfe785859c5968e1b33a467a5d5a6d0176dbc2e5b73f5c98fc8e size:947
+```
+Теперь этот Docker образ находится в публичный [реестре](http://hub.docker.com/) и доступен для использования всем по 
+[адресу](https://hub.docker.com/repository/docker/olegbukatchuk/ansible).
+```shell
+# Загрузка из публичного реестра Docker Hub.
+$ docker pull olegbukatchuk/ansible:2.9.24
 ```
