@@ -1089,3 +1089,104 @@ e2eb06d8af82: Mounted from library/alpine
 # Загрузка из публичного реестра Docker Hub.
 $ docker pull olegbukatchuk/ansible:2.9.24
 ```
+
+
+## 5.4 Оркестрация группой Docker контейнеров на примере Docker Compose.
+
+### 5.4.1. Введение в Docker Compose
+**Docker Compose** — это CLI утилита, дополняющая (расширяющая) функциональность Docker Engine.
+
+Docker Compose предназначен для решения задач, связанных с развёртыванием проектов состоящих _из двух и более 
+компонентов_ (контейнеров).
+
+Реальные проекты обычно включают в себя целый набор совместно работающих микросервисов.
+
+_Большим преимуществом использования Docker Compose является то, что можно определить стек приложения в одном файле 
+и управлять набором микросервисов, как единым набором сущностей!_
+
+#### Разница между Docker и Docker Compose
+**Docker** применяется для управления _каждым отдельным контейнером (сервисом)_, из которых состоит приложение.
+
+**Docker Compose** используется для одновременного управления _сразу несколькими контейнерами_, входящими в состав 
+приложения.
+
+Этот инструмент предлагает те же возможности, что и Docker, но позволяет работать с более сложными конфигурациями.
+
+![1](img/virtconsp_4_2_1.PNG)
+
+### 5.4.2. Структура Docker Compose
+Имя файла `docker-compose.yaml` или `docker-compose.yml`, расширение может быть либо `.yaml`, либо `.yml`
+```yaml
+# Структура docker-compose файла
+version: '2.1'                      # Версия docker-compose 
+networks:                           # Директива описания сетей
+  monitoring:                       # Имя сети (если не указать будет принята директива в которой находится docker-compose.yaml
+    driver: bridge                  # Драйвер сети
+volumes:                            # Директива описания внешних хранилищь
+    prometheus_data: {}             # Имя волюма {} - означает что волюм находится в дефолтном пути
+services:                           # Директива с описанием контейнеров
+  prometheus:                       # Название сервиса
+    image: prom/prometheus:v2.17.1  # Используемый образ для контейнера
+    container_name: prometheus      # Имя контейнера
+    volumes:                        # Подключаемые волюмы
+      - prometheus_data:/prometheus # Смонтировать ранее созданый волюм в указанную директорию контейнера
+    restart: always                 # Перезапустить контейнер в случае остановки
+    networks:                       # Используемые сети
+      - monitoring                  # Использовать ранее указанную сеть
+```
+[Актуальная версия docker compose](https://github.com/docker/compose/releases/)
+```shell
+# Установка docker-compose
+curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose \
+-`uname -s`-`uname -m` -o /usr/bin/docker-compose \
+&& chmod +x /usr/bin/docker-compose
+```
+
+### 5.4.3. Базовые команды Docker Compose
+`docker-compose build` - сборка образа.
+
+_Собранные образы помечаются, как project_service._
+
+Если в Docker Compose файле указано имя образа, Docker образ помечается этим именем. Если после первоначальной сборки 
+вы изменяете Dockerfile, службы или содержимое ее каталога сборки (контекста сборки), _запустите docker-compose build 
+повторно_, чтобы пересобрать изменённый docker образ.
+
+<https://docs.docker.com/engine/reference/commandline/compose_build/>
+
+`docker-compose pull` - качивает образы из удалённого реестра в локальный Docker Registry.
+
+Извлекает указанный в stanza service: образ из удалённого реестра, определенный в файле docker-compose.yaml, но не
+запускает контейнер на основе этого образа, а просто помещает их в локальный реестр Docker.
+
+<https://docs.docker.com/engine/reference/commandline/compose_pull/>
+
+`docker-compose push` - загружает образ из локально реестра в удалённый реестр (Docker Registry).
+
+Загружает указанный в stanza service: образ в удалённый реестр, определенный в файле docker-compose.yaml, шаблон 
+загрузки ищет по имени образа `registry/repository/image:tag`
+
+<https://docs.docker.com/compose/reference/push/>
+
+`docker-compose up [-d]` извлекает/собирает/запускает контейнеры на основе указанных в stanza service: образов. 
+(-d --detach - запустить в фоне)
+Команда запускает контейнеры в фоновом режиме и оставляет их работающими. Если процесс обнаруживает ошибку, код выхода 
+для этой команды — 1. Если процесс прерывается с помощью SIGINT (ctrl + C) или SIGTERM, контейнеры останавливаются, 
+а код выхода равен — 0.
+
+<https://docs.docker.com/engine/reference/commandline/compose_up/>
+
+`docker-compose logs [-f] [service_name]` выводит в STDOUT логи контейнеров на основе указанных в stanza service: 
+запущенных контейнеров (-f --follow следить за выводом). При неуказанном _service_name_ выводит логи всех контейнеров.
+
+<https://docs.docker.com/engine/reference/commandline/compose_logs/>
+
+`docker-compose ps [-a]` выводит список запущенных контейнеров на основе указанных в stanza service: в
+docker-compose файле. (-a --all - отобразить список в т.ч. остановленных контейнеров)
+
+<https://docs.docker.com/compose/reference/ps/>
+
+### 5.4.4. Вводная часть про Облака: Packer, Terraform
+
+### 5.4.5. Развёртывание стека микросервисов
+
+### 5.4.6. Packer + Terraform + Ansible + Docker
