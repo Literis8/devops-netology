@@ -36,12 +36,13 @@ for result in result_os.split('\n'):
 ```
 
 ### Ваш скрипт:
+
 ```python
 #!/usr/bin/env python3
 
 import os
 
-path = "D:\\netology\\devops-netology\\"  # вывел путь в отдельную переменную и изменен путь до локального репозитория
+path = "/\\"  # вывел путь в отдельную переменную и изменен путь до локального репозитория
 bash_command = ["cd " + path, "git status"]  # путь заменен на переменную
 result_os = os.popen(' && '.join(bash_command)).read()
 # is_change = False данная переменная не используется
