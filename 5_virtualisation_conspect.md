@@ -1090,7 +1090,6 @@ e2eb06d8af82: Mounted from library/alpine
 $ docker pull olegbukatchuk/ansible:2.9.24
 ```
 
-
 ## 5.4 Оркестрация группой Docker контейнеров на примере Docker Compose.
 
 ### 5.4.1. Введение в Docker Compose
@@ -1471,3 +1470,160 @@ node01.netology.cloud : ok=12 changed=10 unreachable=0 failed=0 skipped=0 rescue
 
 **Ansible**  - _по факту доступности виртуальной машины_ начинает подготовку операционной системы созданной ВМ, 
 его цель — подготовка окружения (установка всех зависимостей, для того чтобы запустить Docker контейнеры.)
+
+
+## 5.5 Оркестрация кластером Docker контейнеров на примере Docker Swarm.
+
+### 5.5.1 Введение. Возможности Docker Swarm
+**Docker Swarm** — это система кластеризации для Docker, которая превращает набор Docker хостов в полноценный кластер,
+называемый Docker Swarm. Каждый хост, в составе такого кластера выступает в качестве, либо управляющей ноды (manager), 
+либо рабочей (worker). В кластере должен быть, как минимум, один управляющий хост (manager).
+
+Теоретически, физическое расположение машин не имеет значения, однако, _желательно иметь все Docker-ноды внутри одной 
+локальной сети_. В противном случае, управление операциями или поиск консенсуса между несколькими управляющими нодами 
+может занять значительное количество времени. Начиная с версии _Docker 1.12, Docker Swarm уже интегрирован в 
+Docker Engine_ как Swarm-режим. В более старых версиях необходимо было запускать _swarm-контейнер_ на каждом из хостов 
+для обеспечения функционала кластеризации.
+
+**Возможности Docker Swarm:**
+* **Балансировка нагрузки** - Docker Swarm отвечает за балансировку нагрузки и назначение _уникальных DNS-имен_, чтобы 
+приложение, развернутое в кластере, можно было использовать так же, как, если бы приложение было развернуто на одном 
+Docker Engine хосте. Другими словами, Docker Swarm может публиковать порты так же, как контейнер в Docker Engine, 
+а затем _управляющая нода распределяет запросы между service-ами в кластере_.
+* **Динамическое управление ролями: manager/worker** - Docker-хосты могут быть добавлены Swarm кластеру без 
+необходимости перезапуска кластера. Более того, роль узла (управляющий или рабочий) также может динамически меняться 
+на лету. Для того чтобы динамически добавить/убрать роль manager нужно выполнить команду:
+```shell
+# Добавление роли manager
+$ docker node promote <node name>
+# Удаление роли manager
+$ docker node demote <node name>
+```
+* **Динамическое масштабирование сервисов** - Каждый _service_, запущенный в Swarm кластере, может динамически 
+масштабироваться, как в сторону увеличения, так и в сторону уменьшения _количества реплик_. Управляющая нода (manager) 
+заботится о добавлении или удалении контейнеров на рабочих узлах кластера:
+```shell
+# Добавление реплик сервиса
+$ docker service update --replicas=3 my-service
+# Откат изменений (отмена последнего изменения конфигурации)
+$ docker service rollback my-service
+```
+* **Восстановление при отказе узлов** - Рабочие ноды постоянно контролируются управляющей нодой и, если какая-либо нода 
+сбоит, то _новые задачи запускаются на других рабочих нодах_ с целью обеспечения заявленного (желаемого) количество 
+реплик. Docker Swarm также позволяет _создавать несколько управляющих нод для предотвращения поломки кластера_ в
+случае выхода из строя единственной управляющей ноды.
+* **Обновления с задержкой (rolling updates)** - Обновление сервисов может _применяться постепенно_. Например, если 
+у нас есть 10 реплик, и мы хотим внести изменения (обновить версию нашего сервиса), мы можем _определить задержку между 
+развертыванием_ для каждой реплики. В таком случае, когда что-то пойдет не так, _процесс обновления автоматически 
+прерывается_, тем самым защищая нас от ситуации, когда в кластере не останется рабочих реплик.
+
+### 5.5.2 Архитектура Docker Swarm
+![Swarm](img/virtconsp_5_1_1.PNG)
+
+![Swarm](img/virtconsp_5_1_2.PNG)
+
+![Swarm](img/virtconsp_5_1_3.PNG)
+
+![Swarm](img/virtconsp_5_1_4.PNG)
+
+#### Сети в кластере Docker Swarm
+При разворачивании Swarm кластера _на VM с публичными IP-адресами хорошей практикой является настройка правил
+брандмауэра_ для разрешения трафика Docker Swarm на каждом сервере перед созданием кластера. Для успешного создания 
+кластера необходимо, чтобы каждая VM могла связаться друг с другом по следующим протоколам и портам:
+* **TCP порт 2377** для обеспечения связи с целью управления кластером;
+* **TCP и UDP порт 7946** для связи между нодами;
+* **UDP порт 4789** для трафика overlay-сети.
+
+### 5.5.3 Базовые команды Docker Swarm
+`docker swarm init` — инициализация кластера. Кластер будет
+инициализирован, как _single-mode instance_. Так же этой ноде
+будет автоматически присвоена роль _manager_. [Подробнее](https://docs.docker.com/engine/reference/commandline/swarm_init/)
+```shell
+# Инициализация кластера Docker Swarm
+$ docker swarm init --advertise-addr <ip address>
+Swarm initialized: current node (bvz81updecsj6wjz393c09vti) is now a manager.
+To add a worker to this swarm, run the following command:
+docker swarm join \ 
+--token SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-1awxwuwd3z9j1z3puu7rcgdbx \ 
+<ip address>:2377
+To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.
+```
+`docker swarm join` — добавление в кластер новых серверов. **ВАЖНО!!!** В зависимости от того, какой _ключ_ указать 
+вводимый в кластер сервер получит либо _роль worker_, либо _роль manager_.
+
+`docker swarm join-token` — вывод актуальных ключей для добавления нод в кластер. 
+[Подробнее](https://docs.docker.com/engine/reference/commandline/swarm_join/)
+```shell
+# Добавление ноды в кластер Docker Swarm
+$ docker swarm join --token SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-1awxwuwd3z9j1z3puu7rcgdbx \
+<ip address>:2377
+$ docker swarm join-token -q worker SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-1awxwuwd3z9j1z3puu7rcgdbx
+$ docker swarm join-token -q manager SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-7p73s1dx5in4tatdymyhg9hu2
+```
+`docker swarm ca` — просмотр и обновление сертификатов кластера. Кластер по-умолчанию _при инициализации создает цепочку
+сертификатов_ для безопасной коммуникации и передачи данных между нодами. 
+[Подробнее](https://docs.docker.com/engine/reference/commandline/swarm_ca/)
+```shell
+# Просмотр и обновление сертификатов кластера Docker Swarm
+$ docker swarm ca
+-----BEGIN CERTIFICATE----- .... -----END CERTIFICATE-----
+$ docker swarm ca --rotate
+desired root digest: sha256:05da740cf2577a25224…
+rotated TLS certificates: [=========================> ] 1/3 nodes
+rotated CA certificates:  [>                          ] 0/3 nodes
+```
+`docker swarm leave` — удаление ноды из кластера. **ВАЖНО!!!** Перед удалением ноды из кластера, во избежание простоев 
+работающих сервисов, _нужно очистить ноду_ от запущенных на ней сервисов. 
+[Подробнее](https://docs.docker.com/engine/reference/commandline/swarm_leave/)
+```shell
+# Очистка Docker Swarm ноды перед удалением из кластера
+$ docker node update --availability drain node01
+node01
+# Удаление Docker Swarm ноды из кластера
+$ docker swarm leave
+Node left the default swarm.
+```
+`docker node` — набор команд для управления свойствами, ролями, атрибутами нод Docker Swarm кластера. _Доступны 
+команды:_ ls, promote, demote, inspect, ps, rm, update. 
+[Подробнее](https://docs.docker.com/engine/reference/commandline/node/)
+```shell
+# Добавление роли manager для 2-х Docker Swarm нод в работающем кластере
+$ docker node promote node02 node03
+Node node02 promoted to a manager in the swarm.
+Node node03 promoted to a manager in the swarm.
+# Удаление роли manager для 2-х Docker Swarm нод в работающем кластере
+$ docker node demote node02 node03
+Node node02 demoted to a manager in the swarm.
+Node node03 demoted to a manager in the swarm.
+```
+`docker service` — набор команд для управления сервисами и их свойствами, работающими в Docker Swarm кластере.
+_Доступны команды:_ create, inspect, logs, ps, ls, rollback, rm, scale, update. 
+[Подробнее](https://docs.docker.com/engine/reference/commandline/service/)
+```shell
+# Добавление сервиса nginx в количестве 3-х реплик и определение критериев для целевых нод
+$ docker service create \
+--name web \
+--replicas 3 \
+--replicas-max-per-node 1 \
+--constraint node.platform.linux==linux \
+nginx:alpine
+ID            NAME  MODE        REPLICAS  IMAGE          PORTS
+b6lww17hrr4e  web   replicated  3/3       nginx:alpine
+```
+`docker stack` — набор команд для управления сервисами и их свойствами, в формате идентичном Docker Compose, но для
+Docker Swarm кластера. [Подробнее](https://docs.docker.com/engine/reference/commandline/stack/) _Доступны команды:_ 
+deploy, ls, ps, rm, services.
+```shell
+# Деплой сервиса nginx с использованием конфигурационного Compose файла
+$ docker stack deploy --compose-file docker-compose.yml nginx
+Creating network nginx_nginx
+Creating network nginx_default
+Creating service nginx_nginx
+$ docker stack rm netology
+Removing service nginx_nginx
+Removing network nginx_default
+Removing network nginx_nginx
+```
+### 5.5.4 Теорема CAP
+
+### 5.5.5 Развёртывание стека микросервисов в Docker Swarm кластере
