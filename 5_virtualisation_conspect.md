@@ -1537,9 +1537,10 @@ $ docker service rollback my-service
 * **UDP порт 4789** для трафика overlay-сети.
 
 ### 5.5.3 Базовые команды Docker Swarm
-`docker swarm init` — инициализация кластера. Кластер будет
-инициализирован, как _single-mode instance_. Так же этой ноде
-будет автоматически присвоена роль _manager_. [Подробнее](https://docs.docker.com/engine/reference/commandline/swarm_init/)
+`docker swarm init [--advertise-addr <ip address>]` — инициализация кластера. Кластер будет инициализирован, как _single-mode instance_. Так же этой 
+ноде будет автоматически присвоена роль _manager_ (--advertise-addr позволяет укакзать к какой сети должен себя
+ассоциировать кластер). 
+[Подробнее](https://docs.docker.com/engine/reference/commandline/swarm_init/)
 ```shell
 # Инициализация кластера Docker Swarm
 $ docker swarm init --advertise-addr <ip address>
@@ -1553,14 +1554,16 @@ To add a manager to this swarm, run 'docker swarm join-token manager' and follow
 `docker swarm join` — добавление в кластер новых серверов. **ВАЖНО!!!** В зависимости от того, какой _ключ_ указать 
 вводимый в кластер сервер получит либо _роль worker_, либо _роль manager_.
 
-`docker swarm join-token` — вывод актуальных ключей для добавления нод в кластер. 
+`docker swarm join-token -q <worker|manager>` — вывод актуальных ключей для добавления нод в кластер.
 [Подробнее](https://docs.docker.com/engine/reference/commandline/swarm_join/)
 ```shell
 # Добавление ноды в кластер Docker Swarm
 $ docker swarm join --token SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-1awxwuwd3z9j1z3puu7rcgdbx \
 <ip address>:2377
-$ docker swarm join-token -q worker SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-1awxwuwd3z9j1z3puu7rcgdbx
-$ docker swarm join-token -q manager SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-7p73s1dx5in4tatdymyhg9hu2
+$ docker swarm join-token -q worker 
+SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-1awxwuwd3z9j1z3puu7rcgdbx
+$ docker swarm join-token -q manager 
+SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-7p73s1dx5in4tatdymyhg9hu2
 ```
 `docker swarm ca` — просмотр и обновление сертификатов кластера. Кластер по-умолчанию _при инициализации создает цепочку
 сертификатов_ для безопасной коммуникации и передачи данных между нодами. 
@@ -1586,7 +1589,7 @@ $ docker swarm leave
 Node left the default swarm.
 ```
 `docker node` — набор команд для управления свойствами, ролями, атрибутами нод Docker Swarm кластера. _Доступны 
-команды:_ ls, promote, demote, inspect, ps, rm, update. 
+команды:_ ls, promote - повысить ноду до manager, demote - понизит ноду до worker, inspect, ps, rm, update. 
 [Подробнее](https://docs.docker.com/engine/reference/commandline/node/)
 ```shell
 # Добавление роли manager для 2-х Docker Swarm нод в работающем кластере
@@ -1599,7 +1602,9 @@ Node node02 demoted to a manager in the swarm.
 Node node03 demoted to a manager in the swarm.
 ```
 `docker service` — набор команд для управления сервисами и их свойствами, работающими в Docker Swarm кластере.
-_Доступны команды:_ create, inspect, logs, ps, ls, rollback, rm, scale, update. 
+_Доступны команды:_ create - аналог `docker run` , inspect, logs, ps, ls - вывести список запущенных экземпляров,
+rollback - откатить на предыдущую версию до обновления, rm, scale - добавить экземпляры сервиса, update - обновить 
+состояние сервисов. 
 [Подробнее](https://docs.docker.com/engine/reference/commandline/service/)
 ```shell
 # Добавление сервиса nginx в количестве 3-х реплик и определение критериев для целевых нод
@@ -1617,11 +1622,11 @@ Docker Swarm кластера. [Подробнее](https://docs.docker.com/engi
 deploy, ls, ps, rm, services.
 ```shell
 # Деплой сервиса nginx с использованием конфигурационного Compose файла
-$ docker stack deploy --compose-file docker-compose.yml nginx
+$ docker stack deploy --compose-file docker-compose.yml nginx     #nginx - имя стека
 Creating network nginx_nginx
 Creating network nginx_default
 Creating service nginx_nginx
-$ docker stack rm netology
+$ docker stack rm nginx
 Removing service nginx_nginx
 Removing network nginx_default
 Removing network nginx_nginx
@@ -1681,6 +1686,7 @@ Removing network nginx_nginx
 8. Удаляем всё, чтобы не тратить деньги!
 
 ### 5.5.6 Полезные материалы
-* [In Search of an Understandable Consensus Algorithm (Extended Version)](https://raft.github.io/raft.pdf)
+* [In Search of an Understandable Consensus Algorithm (Extended Version)](https://raft.github.io/raft.pdf) - полная
+версия описания как работает алгоритм RAFT
 * [Raft (визуализация)](http://thesecretlivesofdata.com/raft/)
-* [Gossip](https://en.wikipedia.org/wiki/Gossip_protocol)
+* [Gossip](https://en.wikipedia.org/wiki/Gossip_protocol) - сетевой слой общения докер хостов через сетевые сокеты 
