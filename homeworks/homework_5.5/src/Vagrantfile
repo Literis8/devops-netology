@@ -103,6 +103,6 @@ Vagrant.configure("2") do |config|
     sudo apt-get update && sudo apt-get install terraform
   ### Установка Ansible
     apt-get install -y ansible
-    cp /devops-netology/src/terraform/ansible.cfg /etc/ansible/ansible.cfg
+    cp /devops-netology/homeworks/homework_5.5/src/terraform/ansible.cfg /etc/ansible/ansible.cfg
   SHELL
 end
