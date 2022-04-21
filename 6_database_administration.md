@@ -309,7 +309,23 @@ Redis Sentinel входит в состав Redis начиная с версии
 * `SAVEPOINT` - Деление транзакции
 
 ### 6.2.3. Операторы определения данных
+#### CREATE
+* `CREATE DATABASE zawod;` - Создание БД
+* `CREATE TABLE kadry (nomerceh INT, tabnom SERIAL , fio CHAR(20) UNIQUE);` - Создание таблицы
+* `CREATE VIEW poor AS SELECT tabnom, fio FROM kadry WHERE tabnom < 120;` - Создание псевдотаблицы
+* `CREATE UNIQUE INDEX indkdtb ON kadry (tabnom);` - Создание индекса
+* `CREATE SYNONYM t1 FOR zavod.kadry;` - Создание синонима имени таблицы
 
+#### ALTER
+* Изменить имя БД
+ALTER DATABASE zawod MODIFY NAME = factory;
+● Изменение имени таблицы
+ALTER TABLE kadry RENAME TO persons;
+● Изменение столбцов в таблице
+ALTER TABLE kadry ADD (dolzhnost CHAR(20) BEFORE fio),
+DROP(tabnom);
+● Упорядочивание таблицы по индексу
+ALTER INDEX indkdtb TO CLUSTER;
 ### 6.2.4. Операторы манипуляции данных
 ### 6.2.5. Операторы доступа к данным
 ### 6.2.6. Операторы управления транзакциями
