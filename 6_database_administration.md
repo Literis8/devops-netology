@@ -317,20 +317,256 @@ Redis Sentinel входит в состав Redis начиная с версии
 * `CREATE SYNONYM t1 FOR zavod.kadry;` - Создание синонима имени таблицы
 
 #### ALTER
-* Изменить имя БД
-ALTER DATABASE zawod MODIFY NAME = factory;
-● Изменение имени таблицы
-ALTER TABLE kadry RENAME TO persons;
-● Изменение столбцов в таблице
-ALTER TABLE kadry ADD (dolzhnost CHAR(20) BEFORE fio),
-DROP(tabnom);
-● Упорядочивание таблицы по индексу
-ALTER INDEX indkdtb TO CLUSTER;
+* `ALTER DATABASE zawod MODIFY NAME = factory;` - Изменить имя БД
+* `ALTER TABLE kadry RENAME TO persons;` - Изменение имени таблицы
+* `ALTER TABLE kadry ADD (dolzhnost CHAR(20) BEFORE fio), DROP(tabnom);` - Изменение столбцов в таблице
+* `ALTER INDEX indkdtb TO CLUSTER;` - Упорядочивание таблицы по индексу
+
+#### DROP
+* `DROP DATABASE zawod;` - Удалить БД
+* `DROP TABLE kadry;` - Удалить таблицу
+* `DROP INDEX indkdtb;` - Удалить индекс
+* `DROP SYNONYM t1;` - Удалить синоним
+* `DROP VIEW poor;` - Удалить псевдотаблицу
+
 ### 6.2.4. Операторы манипуляции данных
+
+#### SELECT
+* `SELECT * FROM persons;` - Вывести все записи таблицы
+* `SELECT COUNT(*) FROM persons;` - Вывести количество записей в таблице
+* `SELECT fio, tabnom from persons;` - Вывести определенные столбцы из таблицы
+* `SELECT fio, tabnom from persons where tabnom>100;` - Вывести данные по условию
+* `SELECT DISTINCT fio, tabnom from persons;` - Вывести только уникальные значения
+* `SELECT fio, tabnom from persons ORDER BY tabnom ASC;` Вывести упорядоченные данные по признаку (ASC - по возрастанию, DESC - по убыванию)
+* `SELECT COUNT(*) from persons GROUP BY fio;` - Вывести сгруппированные значения по признаку
+
+#### INSERT
+* `INSERT INTO persons VALUES (1, 123, “Пупкин”);` - Вставка данных в таблицу
+* `INSERT INTO persons (nomerceh, tabno, fio) VALUES (1, 123, “Пупкин”);` - Вставка данных в таблицу с указанием столбца
+
+#### UPDATE
+* `UPDATE persons SET fio = 'Alfred Schmidt' WHERE tabno = 1;` - Изменение поля в конкретной строке
+* `UPDATE persons SET fio = 'Alfred Schmidt';` - Изменение поля во всей таблицу
+
+**Важно!**  
+Если не указывать конкретную строку (через оператор _WHERE_) - изменения затронут всю таблицу.
+
+#### DELETE
+* `DELETE FROM persons;` - Удалить все данные в таблице
+* `DELETE FROM persons WHERE tabno=1;` - Удалить конкретную строку (или набор строк)
+
+**Важно!**  
+Если не указывать конкретную строку (через оператор _WHERE_) - изменения затронут всю таблицу.
+
+#### ИТОГ
+* Синтаксис создания записи:  
+`INSERT INTO table_name VALUES (value1, value2, value3, ...);`  
+`INSERT INTO table_name (column1, column2, column3, ...) VALUES (value1, value2, value3, ...);`
+* Синтаксис получения записи:  
+`SELECT * FROM table_name;`  
+`SELECT column1, column2, … FROM table_name;`
+* Синтаксис обновления записи:  
+`UPDATE table_name SET column1 = value1, … WHERE condition;`
+* Синтаксис удаления записи:  
+`DELETE FROM table_name WHERE condition;`
+
 ### 6.2.5. Операторы доступа к данным
+#### GRANT
+Синтаксис выдачи прав выглядит следующим образом:  
+`GRANT privilege_name ON object_name to {user_name | public | role_name};`
+
+Пример:  
+`GRANT ALL ON customer TO iwanow, petrow; GRANT UPDATE(fname,lname,company, city),SELECT ON customer TO PUBLIC;`
+
+#### REVOKE
+Синтаксис отзыва прав выглядит следующим образом:  
+`REVOKE privilege_name ON object_name FROM {user_name | public | role_name};`
+
+Пример:  
+`REVOKE ALL ON customer FROM iwanow, petrow; REVOKE UPDATE(fname,lname,company, city),SELECT ON customer FROM PUBLIC;`
+
+#### DENY
+Синтаксис запрета выглядит следующим образом:  
+`DENY privilege_name ON object_name TO {user_name | public | role_name};`
+
+Пример:
+```sql
+DENY ALL ON customer TO iwanow, petrow;
+DENY UPDATE(fname,lname,company, city),SELECT ON customer TO PUBLIC;
+```
+
 ### 6.2.6. Операторы управления транзакциями
+Пример транзакции для MySQL:
+```PostgreSQL
+# начало транзакции
+BEGIN;
+# обновляем данные
+UPDATE accounts SET balance = balance - 100.00 WHERE name = 'Alice';
+# ставим точку сохранения
+SAVEPOINT my_savepoint;
+# обновляем данные
+UPDATE accounts SET balance = balance + 100.00 WHERE name = 'Bob';
+# допустили ошибку, возвращаемся к my_savepoint
+ROLLBACK TO my_savepoint;
+# теперь правильно обновляем данные
+UPDATE accounts SET balance = balance + 100.00 WHERE name = 'Wally';
+# завершаем транзакцию
+COMMIT;
+```
+```MySQL
+# начало транзакции
+START TRANSACTION;
+# обновляем данные
+UPDATE accounts SET balance = balance - 100.00 WHERE name = 'Alice';
+# ставим точку сохранения
+SAVEPOINT my_savepoint;
+# обновляем данные
+UPDATE accounts SET balance = balance + 100.00 WHERE name = 'Bob';
+# допустили ошибку, возвращаемся к my_savepoint
+ROLLBACK TO my_savepoint;
+# теперь правильно обновляем данные
+UPDATE accounts SET balance = balance + 100.00 WHERE name = 'Wally';
+# завершаем транзакцию
+COMMIT;
+```
+
 ### 6.2.7. Первичные и внешние ключи
+**Ключи** - это некие сущности, созданные для установления определенных ограничений, которые поддерживают целостность и
+доступность данных в таблицах баз данных.
+
+Ключи в sql созданы для того, чтобы указать дополнительную функциональность столбца. Будь то уникальность или то, что 
+столбец ссылается на другую таблицу (внешний ключ).
+
+**Первичный ключ или PRIMARY KEY** означает, что в таблице значение колонки primary key не может повторяться. То есть 
+устанавливает уникальность данных.
+
+**Внешний ключ или FOREIGN KEY** устанавливает взаимосвязь между данными в разных таблицах.
+
+![Keys](img/dbconsp_2_7_1.PNG)
+
 ### 6.2.8. Сложные выборки данных
+Выборка данных из нескольких таблиц не является тривиальной процедурой.
+
+Типы таких выборок можно разделить на:
+* выборка с объединением;
+* выборка с использованием вложенного запроса;
+* выборка c использованием JOIN.
+
+Выборку с объединением можно осуществить посредством оператора **UNION**.
+Например, у нас есть 2 таблицы:
+
+table 1:
+
+| id  | name | country |
+|-----|:-----|---------|
+| 1   | John | England |
+| 2   | Bob  | USA     |
+
+table 2:
+
+| id  | name  | language  |
+|-----|-------|-----------|
+| 3   | Alice | Assembler |
+| 4   | Sindy | C++       |
+
+Тогда запрос на выборку имен может выглядеть следующим образом:  
+`SELECT name FROM table_1 UNION SELECT name FROM table_2;`
+
+**Важно!** UNION можно применять, только если объединяющиеся выборки совпадают по столбцам.
+
+Выборка с вложенным запросом производится с использованием оператора **WHERE**.
+Например, у нас есть 2 таблицы:  
+customer:
+
+| id  | name | order_id |
+|-----|------|----------|
+| 1   | John | 3        |
+| 2   | Bob  | 4        |
+
+orders:
+
+| id  | title | price |
+|-----|-------|-------|
+| 3   | Tea   | 10    |
+| 4   | Phone | 9999  |
+
+Тогда найти имя покупателя, купившего чай можно следующим образом:
+`SELECT name FROM customer WHERE order_id IN (SELECT id FROM orders WHERE title=”TEA”);`
+
+Выборки с использованием **JOIN** можно подразделить на следующие типы:
+* Внутреннее присоединение (INNER JOIN)
+* Внешнее правое присоединение (RIGHT OUTER JOIN)
+* Внешнее левое присоединение (LEFT OUTER JOIN)
+* Внешнее присоединение (FULL OUTER JOIN)
+* Левое множество, исключая правое
+* Правое множество, исключая левое
+* Множества, исключая пересечение
+
+![SQL JOINS](img/dbconsp_2_8_1.PNG)
+
+Пусть у нас есть 2 таблицы (persons (p), positions (ps)):
+
+![2 tables](img/dbconsp_2_8_2.PNG)
+
+#### INNER JOIN
+```sql
+SELECT p.id, p.name 'Имя сотрудника', ps.id 'pos.id', ps.name 'Должность'
+FROM 'persons' p
+INNER JOIN 'positions' ps ON ps.id = p.post_id
+```
+![INNER JOIN](img/dbconsp_2_8_3.PNG)
+
+#### LEFT OUTER JOIN
+```sql
+SELECT p.id, p.name 'Имя сотрудника', ps.id 'pos.id', ps.name 'Должность'
+FROM 'persons' p
+LEFT OUTER JOIN 'positions' ps ON ps.id = p.post_id
+```
+![LEFT OUTER JOIN](img/dbconsp_2_8_4.PNG)
+
+#### RIGHT OUTER JOIN
+```sql
+SELECT p.id, p.name 'Имя сотрудника', ps.id 'pos.id', ps.name 'Должность'
+FROM 'persons' p
+RIGHT OUTER JOIN 'positions' ps ON ps.id = p.post_id
+```
+
+![RIGHT OUTER JOIN](img/dbconsp_2_8_5.PNG)
+
+#### FULL OUTER JOIN
+`SELECT * FROM ps FULL JOIN p ON ps.pos_id = p.id;`
+
+![FULL OUTER JOIN](img/dbconsp_2_8_6.PNG)
+
+#### Левое множество, исключая правое
+```sql
+SELECT p.id, p.name 'Имя сотрудника', ps.id 'pos.id', ps.name 'Должность'
+FROM 'persons' p
+LEFT OUTER JOIN 'positions' ps ON ps.id = p.post_id
+WHERE ps.id is NULL
+```
+![Левое множество, исключая правое](img/dbconsp_2_8_7.PNG)
+
+#### Правое множество, исключая левое
+```SQL
+SELECT p.id, p.name 'Имя сотрудника', ps.id 'pos.id', ps.name 'Должность'
+FROM 'persons' p
+RIGHT OUTER JOIN 'positions' ps ON ps.id = p.post_id
+WHERE p.id is NULL
+```
+![Правое множество, исключая левое](img/dbconsp_2_8_8.PNG)
+
+#### Множества, исключая пересечение
+```sql
+(SELECT p.id, p.name `Имя сотрудника`, ps.id `pos.id`, ps.name `Должность`
+FROM `persons` p LEFT OUTER JOIN `positions` ps ON ps.id = p.post_id
+WHERE ps.id is NULL) UNION ALL
+(SELECT p.id, p.name `Имя сотрудника`, ps.id `pos.id`, ps.name `Должность`
+FROM `persons` p RIGHT OUTER JOIN `positions` ps ON ps.id = p.post_id
+WHERE p.id is NULL)
+```
+![Множества, исключая пересечение](img/dbconsp_2_8_9.PNG)
+
 ### 6.2.9. Индексы
 ### 6.2.10. Explain
 
