@@ -376,10 +376,13 @@ DESC - по убыванию)
 ### 6.2.5. Операторы доступа к данным
 #### GRANT
 Синтаксис выдачи прав выглядит следующим образом:  
-`GRANT privilege_name ON object_name to {user_name | public | role_name};`
+`GRANT privilege_name ON object_name TO {user_name | public | role_name};`
 
 Пример:  
-`GRANT ALL ON customer TO iwanow, petrow; GRANT UPDATE(fname,lname,company, city),SELECT ON customer TO PUBLIC;`
+```sql
+GRANT ALL ON customer TO iwanow, petrow; 
+GRANT UPDATE(fname,lname,company, city),SELECT ON customer TO PUBLIC;`
+```
 
 #### REVOKE
 Синтаксис отзыва прав выглядит следующим образом:  
@@ -523,7 +526,7 @@ INNER JOIN 'positions' ps ON ps.id = p.post_id
 ```sql
 SELECT p.id, p.name 'Имя сотрудника', ps.id 'pos.id', ps.name 'Должность'
 FROM 'persons' p
-LEFT OUTER JOIN 'positions' ps ON ps.id = p.post_id
+LEFT OUTER JOIN 'positions' ps ON ps.id = p.pos_id
 ```
 ![LEFT OUTER JOIN](img/dbconsp_2_8_4.PNG)
 

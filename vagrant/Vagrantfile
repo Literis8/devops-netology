@@ -92,18 +92,8 @@ Vagrant.configure("2") do |config|
     apt-get update && apt-cache policy docker-ce
     sudo apt-get install -y docker-ce
     usermod -aG docker vagrant
-  ### Установка Yandex.Cloud
-    curl https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
-  ### Установка Packer
-    curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
-    apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-    apt-get update && sudo apt-get install packer
-  ### Установка Terraform
-    curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
-    sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-    sudo apt-get update && sudo apt-get install terraform
-  ### Установка Ansible
-    apt-get install -y ansible
-    cp /devops-netology/src/terraform/ansible.cfg /etc/ansible/ansible.cfg
+  ### Установка docker-compose
+    curl -SL https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
   SHELL
 end
