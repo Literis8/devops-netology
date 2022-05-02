@@ -1,420 +1,375 @@
-# Домашнее задание к занятию "6.2. SQL"
+# Домашнее задание к занятию "6.3. MySQL"
 
 ## Задача 1
 
-Используя docker поднимите инстанс PostgreSQL (версию 12) c 2 volume, 
-в который будут складываться данные БД и бэкапы.
+Используя docker поднимите инстанс MySQL (версию 8). Данные БД сохраните в volume.
 
-Приведите получившуюся команду или docker-compose манифест.
+Изучите [бэкап БД](https://github.com/netology-code/virt-homeworks/tree/master/06-db-03-mysql/test_data) и 
+восстановитесь из него.
 
-### Ответ:
+Перейдите в управляющую консоль `mysql` внутри контейнера.
+
+Используя команду `\h` получите список управляющих команд.
+
+Найдите команду для выдачи статуса БД и **приведите в ответе** из ее вывода версию сервера БД.
+
+Подключитесь к восстановленной БД и получите список таблиц из этой БД.
+
+**Приведите в ответе** количество записей с `price` > 300.
+
+В следующих заданиях мы будем продолжать работу с данным контейнером.
+
+### Решение
+* Используя docker поднимите инстанс MySQL (версию 8). Данные БД сохраните в volume.
 ```yaml
-version: "2.4"
+version: "3.1"
 
 volumes:
-  pg_data: {}
-  pg_backup: {}
+  mysql_data: {}
+  mysql_backup: {}
 
 services:
-  postgesql:
-    image: postgres:12
-    container_name: postgresql
+  mysql:
+    image: mysql:8
+    command: --default-authentication-plugin=mysql_native_password
+    container_name: mysql
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      MYSQL_ROOT_PASSWORD: mysql
     volumes:
-      - pg_data:/var/lib/postgresql/data/
-      - pg_backup:/var/backups/pg_backup
+      - mysql_data:/var/lib/mysql
+      - mysql_backup:/var/backups/mysql_backup
     restart: always
 ```
+* Изучите бэкап БД и восстановитесь из него.
+```shell
+vagrant@vagrant:/devops-netology/src$ docker exec -ti mysql bash
+root@cf8bbdc06196:/# mysql --password=mysql test < /var/backups/mysql_backup/test_dump.sql
+```
+* Перейдите в управляющую консоль `mysql` внутри контейнера.
+```shell
+vagrant@vagrant:/devops-netology/src$ docker exec -ti mysql mysql -p mysql
+Enter password:
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 10
+Server version: 8.0.29 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql
+```
+* Используя команду \h получите список управляющих команд.
+```shell
+mysql> \h
+
+For information about MySQL products and services, visit:
+   http://www.mysql.com/
+For developer information, including the MySQL Reference Manual, visit:
+   http://dev.mysql.com/
+To buy MySQL Enterprise support, training, or other products, visit:
+   https://shop.mysql.com/
+
+List of all MySQL commands:
+Note that all text commands must be first on line and end with ';'
+?         (\?) Synonym for `help'.
+clear     (\c) Clear the current input statement.
+connect   (\r) Reconnect to the server. Optional arguments are db and host.
+delimiter (\d) Set statement delimiter.
+edit      (\e) Edit command with $EDITOR.
+ego       (\G) Send command to mysql server, display result vertically.
+exit      (\q) Exit mysql. Same as quit.
+go        (\g) Send command to mysql server.
+help      (\h) Display this help.
+nopager   (\n) Disable pager, print to stdout.
+notee     (\t) Don't write into outfile.
+pager     (\P) Set PAGER [to_pager]. Print the query results via PAGER.
+print     (\p) Print current command.
+prompt    (\R) Change your mysql prompt.
+quit      (\q) Quit mysql.
+rehash    (\#) Rebuild completion hash.
+source    (\.) Execute an SQL script file. Takes a file name as an argument.
+status    (\s) Get status information from the server.
+system    (\!) Execute a system shell command.
+tee       (\T) Set outfile [to_outfile]. Append everything into given outfile.
+use       (\u) Use another database. Takes database name as argument.
+charset   (\C) Switch to another charset. Might be needed for processing binlog with multi-byte charsets.
+warnings  (\W) Show warnings after every statement.
+nowarning (\w) Don't show warnings after every statement.
+resetconnection(\x) Clean session context.
+query_attributes Sets string parameters (name1 value1 name2 value2 ...) for the next query to pick up.
+ssl_session_data_print Serializes the current SSL session data to stdout or file
+
+For server side help, type 'help contents'
+
+mysql> CREATE DATABASE test
+    -> ;
+Query OK, 1 row affected (0.00 sec)
+```
+* Найдите команду для выдачи статуса БД и приведите в ответе из ее вывода версию сервера БД.
+```shell
+mysql> \s
+--------------
+mysql  Ver 8.0.29 for Linux on x86_64 (MySQL Community Server - GPL)
+...
+Threads: 2  Questions: 112  Slow queries: 0  Opens: 216  Flush tables: 3  Open tables: 134  Queries per second avg: 0.068
+--------------
+```
+* Подключитесь к восстановленной БД и получите список таблиц из этой БД.
+```shell
+mysql> USE test
+mysql> SHOW TABLES;
++----------------+
+| Tables_in_test |
++----------------+
+| orders         |
++----------------+
+1 row in set (0.00 sec)
+
+```
+* Приведите в ответе количество записей с price > 300.
+```shell
+mysql> SELECT * FROM orders WHERE price > 300;
++----+----------------+-------+
+| id | title          | price |
++----+----------------+-------+
+|  2 | My little pony |   500 |
++----+----------------+-------+
+1 row in set (0.00 sec)
+
+```
+
 ## Задача 2
 
-В БД из задачи 1: 
-- создайте пользователя test-admin-user и БД test_db
-- в БД test_db создайте таблицу orders и clients (спeцификация таблиц ниже)
-- предоставьте привилегии на все операции пользователю test-admin-user на таблицы БД test_db
-- создайте пользователя test-simple-user  
-- предоставьте пользователю test-simple-user права на SELECT/INSERT/UPDATE/DELETE данных таблиц БД test_db
+Создайте пользователя test в БД c паролем test-pass, используя:
+- плагин авторизации mysql_native_password
+- срок истечения пароля - 180 дней 
+- количество попыток авторизации - 3 
+- максимальное количество запросов в час - 100
+- аттрибуты пользователя:
+    - Фамилия "Pretty"
+    - Имя "James"
 
-Таблица orders:
-- id (serial primary key)
-- наименование (string)
-- цена (integer)
-
-Таблица clients:
-- id (serial primary key)
-- фамилия (string)
-- страна проживания (string, index)
-- заказ (foreign key orders)
-
-Приведите:
-- итоговый список БД после выполнения пунктов выше,
-- описание таблиц (describe)
-- SQL-запрос для выдачи списка пользователей с правами над таблицами test_db
-- список пользователей с правами над таблицами test_db
+Предоставьте привилегии пользователю `test` на операции SELECT базы `test_db`.
+    
+Используя таблицу INFORMATION_SCHEMA.USER_ATTRIBUTES получите данные по пользователю `test` и 
+**приведите в ответе к задаче**.
 
 ### Решение:
+* Создайте пользователя test в БД c паролем test-pass
 ```shell
-vagrant@vagrant:/devops-netology/src$ docker-compose up -d
-[+] Running 2/2
- ⠿ Network src_default   Created                                                                                                                                                                                                      0.1s 
- ⠿ Container postgresql  Started    
-
-vagrant@vagrant:/devops-netology/src$ docker exec -it postgresql psql -U postgres
-psql (12.10 (Debian 12.10-1.pgdg110+1))
-Type "help" for help.
-
-postgres=#
+mysql> CREATE USER 'test'
+    -> IDENTIFIED WITH mysql_native_password BY 'test-pass'
+    -> WITH MAX_QUERIES_PER_HOUR 100
+    -> PASSWORD EXPIRE INTERVAL 180 DAY
+    -> FAILED_LOGIN_ATTEMPTS 3
+    -> ATTRIBUTE '{"name": "James", "lastname": "Pretty"}';
+Query OK, 0 rows affected (0.01 sec)
 ```
-* создайте пользователя test-admin-user и БД test_db:
+* Предоставьте привилегии пользователю test на операции SELECT базы test_db.
+> Поскольку в задаче не было указано как назвать базу данных, у меня она называется не test_db, а test
 ```shell
-postgres=# CREATE USER "test-admin-user"; CREATE DATABASE test_db;
-CREATE ROLE
-CREATE DATABASE
+mysql> GRANT SELECT ON test.* TO test;
+Query OK, 0 rows affected (0.01 sec)
 ```
-* в БД test_db создайте таблицу orders и clients (спeцификация таблиц ниже):
+* Используя таблицу INFORMATION_SCHEMA.USER_ATTRIBUTES получите данные по пользователю test и приведите в ответе к задаче.
 ```shell
-postgres=# CREATE TABLE orders (                                  
-id SERIAL PRIMARY KEY,                                            
-наименование VARCHAR,                                                
-цена INTEGER                                                      
-);                                                                
-CREATE TABLE
-postgres=# CREATE TABLE clients (
-id SERIAL PRIMARY KEY,
-фамилия VARCHAR,
-"страна проживания" VARCHAR,
-заказ INT,
-FOREIGN KEY (заказ) REFERENCES orders (id)
-);
-CREATE TABLE
-```
-* предоставьте привилегии на все операции пользователю test-admin-user на таблицы БД test_db
-```shell
-postgres=# GRANT ALL ON orders, clients TO "test-admin-user";
-GRANT
-```
-* создайте пользователя test-simple-user
-```shell
-postgres=# CREATE USER "test-simple-user";
-CREATE ROLE
-```
-* предоставьте пользователю test-simple-user права на SELECT/INSERT/UPDATE/DELETE данных таблиц БД test_db
-```shell
-postgres=# GRANT SELECT, INSERT, UPDATE, DELETE ON orders, clients TO "test-simple-user";
-GRANT
-```
-* приведите итоговый список БД после выполнения пунктов выше
-```shell
-postgres=# \l
-                                     List of databases
-   Name    |  Owner   | Encoding |  Collate   |   Ctype    |       Access privileges
------------+----------+----------+------------+------------+--------------------------------
- postgres  | postgres | UTF8     | en_US.utf8 | en_US.utf8 |
- template0 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres                   +
-           |          |          |            |            | postgres=CTc/postgres
- template1 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres                   +
-           |          |          |            |            | postgres=CTc/postgres
- test_db   | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =Tc/postgres                  +
-           |          |          |            |            | postgres=CTc/postgres         +
-           |          |          |            |            | "test-admin-user"=CTc/postgres
-(4 rows)
-```
-* приведите описание таблиц (describe)
-```shell
-postgres=# \d clients
-                                       Table "public.clients"
-      Column       |       Type        | Collation | Nullable |               Default
--------------------+-------------------+-----------+----------+-------------------------------------
- id                | integer           |           | not null | nextval('clients_id_seq'::regclass)
- фамилия           | character varying |           |          |
- страна проживания | character varying |           |          |
- заказ             | integer           |           |          |
-Indexes:
-    "clients_pkey" PRIMARY KEY, btree (id)
-Foreign-key constraints:
-    "clients_заказ_fkey" FOREIGN KEY ("заказ") REFERENCES orders(id)
-
-postgres=# \d orders
-                                    Table "public.orders"
-    Column    |       Type        | Collation | Nullable |              Default
---------------+-------------------+-----------+----------+------------------------------------
- id           | integer           |           | not null | nextval('orders_id_seq'::regclass)
- наименование | character varying |           |          |
- цена         | integer           |           |          |
-Indexes:
-    "orders_pkey" PRIMARY KEY, btree (id)
-Referenced by:
-    TABLE "clients" CONSTRAINT "clients_заказ_fkey" FOREIGN KEY ("заказ") REFERENCES orders(id)
-```
-* Приведите SQL-запрос для выдачи списка пользователей с правами над таблицами test_db
-```sql
-SELECT * FROM information_schema.table_privileges WHERE table_name = 'clients' OR table_name = 'orders';
-```
-* список пользователей с правами над таблицами test_db
-```shell
- grantor  |     grantee      | table_catalog | table_schema | table_name | privilege_type | is_grantable | with_hierarchy
-----------+------------------+---------------+--------------+------------+----------------+--------------+----------------
- postgres | postgres         | postgres      | public       | orders     | INSERT         | YES          | NO
- postgres | postgres         | postgres      | public       | orders     | SELECT         | YES          | YES
- postgres | postgres         | postgres      | public       | orders     | UPDATE         | YES          | NO
- postgres | postgres         | postgres      | public       | orders     | DELETE         | YES          | NO
- postgres | postgres         | postgres      | public       | orders     | TRUNCATE       | YES          | NO
- postgres | postgres         | postgres      | public       | orders     | REFERENCES     | YES          | NO
- postgres | postgres         | postgres      | public       | orders     | TRIGGER        | YES          | NO
- postgres | test-simple-user | postgres      | public       | orders     | INSERT         | NO           | NO
- postgres | test-simple-user | postgres      | public       | orders     | SELECT         | NO           | YES
- postgres | test-simple-user | postgres      | public       | orders     | UPDATE         | NO           | NO
- postgres | test-simple-user | postgres      | public       | orders     | DELETE         | NO           | NO
- postgres | test-admin-user  | postgres      | public       | orders     | INSERT         | NO           | NO
- postgres | test-admin-user  | postgres      | public       | orders     | SELECT         | NO           | YES
- postgres | test-admin-user  | postgres      | public       | orders     | UPDATE         | NO           | NO
- postgres | test-admin-user  | postgres      | public       | orders     | DELETE         | NO           | NO
- postgres | test-admin-user  | postgres      | public       | orders     | TRUNCATE       | NO           | NO
- postgres | test-admin-user  | postgres      | public       | orders     | REFERENCES     | NO           | NO
- postgres | test-admin-user  | postgres      | public       | orders     | TRIGGER        | NO           | NO
- postgres | postgres         | postgres      | public       | clients    | INSERT         | YES          | NO
- postgres | postgres         | postgres      | public       | clients    | SELECT         | YES          | YES
- postgres | postgres         | postgres      | public       | clients    | UPDATE         | YES          | NO
- postgres | postgres         | postgres      | public       | clients    | DELETE         | YES          | NO
- postgres | postgres         | postgres      | public       | clients    | TRUNCATE       | YES          | NO
- postgres | postgres         | postgres      | public       | clients    | REFERENCES     | YES          | NO
- postgres | postgres         | postgres      | public       | clients    | TRIGGER        | YES          | NO
- postgres | test-simple-user | postgres      | public       | clients    | INSERT         | NO           | NO
- postgres | test-simple-user | postgres      | public       | clients    | SELECT         | NO           | YES
- postgres | test-simple-user | postgres      | public       | clients    | UPDATE         | NO           | NO
- postgres | test-simple-user | postgres      | public       | clients    | DELETE         | NO           | NO
- postgres | test-admin-user  | postgres      | public       | clients    | INSERT         | NO           | NO
- postgres | test-admin-user  | postgres      | public       | clients    | SELECT         | NO           | YES
- postgres | test-admin-user  | postgres      | public       | clients    | UPDATE         | NO           | NO
- postgres | test-admin-user  | postgres      | public       | clients    | DELETE         | NO           | NO
- postgres | test-admin-user  | postgres      | public       | clients    | TRUNCATE       | NO           | NO
- postgres | test-admin-user  | postgres      | public       | clients    | REFERENCES     | NO           | NO
- postgres | test-admin-user  | postgres      | public       | clients    | TRIGGER        | NO           | NO
-(36 rows)
+mysql> SELECT * FROM INFORMATION_SCHEMA.USER_ATTRIBUTES WHERE USER = 'test';
++------+------+-----------------------------------------+
+| USER | HOST | ATTRIBUTE                               |
++------+------+-----------------------------------------+
+| test | %    | {"name": "James", "lastname": "Pretty"} |
++------+------+-----------------------------------------+
+1 row in set (0.01 sec)
 ```
 
 ## Задача 3
 
-Используя SQL синтаксис - наполните таблицы следующими тестовыми данными:
+Установите профилирование `SET profiling = 1`.
+Изучите вывод профилирования команд `SHOW PROFILES;`.
 
-Таблица orders
+Исследуйте, какой `engine` используется в таблице БД `test_db` и **приведите в ответе**.
 
-| Наименование | цена |
-|--------------|------|
-| Шоколад      | 10   |
-| Принтер      | 3000 |
-| Книга        | 500  |
-| Монитор      | 7000 |
-| Гитара       | 4000 |
-
-Таблица clients
-
-| ФИО                  | Страна проживания |
-|----------------------|-------------------|
-| Иванов Иван Иванович | USA               |
-| Петров Петр Петрович | Canada            |
-| Иоганн Себастьян Бах | Japan             |
-| Ронни Джеймс Дио     | Russia            |
-| Ritchie Blackmore    | Russia            |
-
-Используя SQL синтаксис:
-- вычислите количество записей для каждой таблицы 
-- приведите в ответе:
-    - запросы 
-    - результаты их выполнения.
-
-### Решение:
-```shell
-postgres=# INSERT INTO orders (наименование, цена) VALUES
-('Шоколад', 10),
-('Принтер', 3000),
-('Книга', 500),
-('Монитор', 7000),
-('Гитара', 4000);
-INSERT 0 5
-
-postgres=# INSERT INTO clients (фамилия, "страна проживания") VALUES
-('Иванов Иван Иванович', 'USA'),
-('Петров Петр Петрович', 'Canada'),
-('Иоганн Себастьян Бах', 'Japan'),
-('Ронни Джеймс Дио', 'Russia'),
-('Ritchie Blackmore', 'Russia');
-INSERT 0 5
-
-postgres=# SELECT COUNT(*) FROM orders;
- count
--------
-     5
-(1 row)
-
-postgres=# SELECT COUNT(*) FROM clients;
- count
--------
-     5
-(1 row)
-```
-## Задача 4
-
-Часть пользователей из таблицы clients решили оформить заказы из таблицы orders.
-
-Используя foreign keys свяжите записи из таблиц, согласно таблице:
-
-| ФИО                  | Заказ   |
-|----------------------|---------|
-| Иванов Иван Иванович | Книга   |
-| Петров Петр Петрович | Монитор |
-| Иоганн Себастьян Бах | Гитара  |
-
-Приведите SQL-запросы для выполнения данных операций.
-
-Приведите SQL-запрос для выдачи всех пользователей, которые совершили заказ, а также вывод данного запроса.
- 
-Подсказк - используйте директиву `UPDATE`.
-
-### Решение:
-```shell
-postgres=# UPDATE clients SET "заказ" = 3 WHERE фамилия = 'Иванов Иван Иванович';
-UPDATE 1
-postgres=# UPDATE clients SET "заказ" = 4 WHERE фамилия = 'Петров Петр Петрович';
-UPDATE 1
-postgres=# UPDATE clients SET "заказ" = 5 WHERE фамилия = 'Иоганн Себастьян Бах';
-UPDATE 1
-
-postgres=# SELECT * FROM clients WHERE заказ IS NOT NULL;
- id |       фамилия        | страна проживания | заказ
-----+----------------------+-------------------+-------
-  1 | Иванов Иван Иванович | USA               |     3
-  2 | Петров Петр Петрович | Canada            |     4
-  3 | Иоганн Себастьян Бах | Japan             |     5
-(3 rows)
-```
-
-## Задача 5
-
-Получите полную информацию по выполнению запроса выдачи всех пользователей из задачи 4 
-(используя директиву EXPLAIN).
-
-Приведите получившийся результат и объясните что значат полученные значения.
+Измените `engine` и **приведите время выполнения и запрос на изменения из профайлера в ответе**:
+- на `MyISAM`
+- на `InnoDB`
 
 ### Решение
+* Установите профилирование `SET profiling = 1`. Изучите вывод профилирования команд `SHOW PROFILES;`.
 ```shell
-postgres=# EXPLAIN SELECT * FROM clients WHERE заказ IS NOT NULL;
-                        QUERY PLAN
------------------------------------------------------------
- Seq Scan on clients  (cost=0.00..18.10 rows=806 width=72)
-   Filter: ("заказ" IS NOT NULL)
-(2 rows)
+mysql> SET profiling = 1;
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+mysql> SHOW PROFILES;
++----------+------------+-------------------+
+| Query_ID | Duration   | Query             |
++----------+------------+-------------------+
+|        1 | 0.00013625 | SET profiling = 1 |
++----------+------------+-------------------+
+1 row in set, 1 warning (0.00 sec)
 ```
-Числа, перечисленные в скобках (слева направо), имеют следующий смысл:
-* Приблизительная стоимость запуска. Это время, которое проходит, прежде чем начнётся этап вывода данных, например для сортирующего узла это время сортировки.
-* Приблизительная общая стоимость. Она вычисляется в предположении, что узел плана выполняется до конца, то есть возвращает все доступные строки. На практике родительский узел может досрочно прекратить чтение строк дочернего (см. приведённый ниже пример с LIMIT).
-* Ожидаемое число строк, которое должен вывести этот узел плана. При этом так же предполагается, что узел выполняется до конца.
-* Ожидаемый средний размер строк, выводимых этим узлом плана (в байтах).
-## Задача 6
+* Исследуйте, какой `engine` используется в таблице БД `test_db` и **приведите в ответе**.
+```shell
+mysql> SHOW TABLE STATUS
+    -> ;
++--------+--------+---------+------------+------+----------------+-------------+-----------------+--------------+-----------+----------------+-------------
+--------+---------------------+------------+--------------------+----------+----------------+---------+
+| Name   | Engine | Version | Row_format | Rows | Avg_row_length | Data_length | Max_data_length | Index_length | Data_free | Auto_increment | Create_time
+        | Update_time         | Check_time | Collation          | Checksum | Create_options | Comment |
++--------+--------+---------+------------+------+----------------+-------------+-----------------+--------------+-----------+----------------+-------------
+--------+---------------------+------------+--------------------+----------+----------------+---------+
+| orders | InnoDB |      10 | Dynamic    |    5 |           3276 |       16384 |               0 |            0 |         0 |              6 | 2022-05-02 0
+9:18:38 | 2022-05-02 09:18:38 | NULL       | utf8mb4_0900_ai_ci |     NULL |                |         |
++--------+--------+---------+------------+------+----------------+-------------+-----------------+--------------+-----------+----------------+-------------
+--------+---------------------+------------+--------------------+----------+----------------+---------+
+1 row in set (0.01 sec)
 
-Создайте бэкап БД test_db и поместите его в volume, предназначенный для бэкапов (см. Задачу 1).
 
-Остановите контейнер с PostgreSQL (но не удаляйте volumes).
+```
+Измените `engine` на `MyISAM` и **приведите время выполнения и запрос на изменения из профайлера в ответе**:
+```shell
+mysql> ALTER TABLE orders ENGINE = MyISAM;
+Query OK, 5 rows affected (0.03 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+mysql> SHOW PROFILES;
++----------+------------+------------------------------------+
+| Query_ID | Duration   | Query                              |
++----------+------------+------------------------------------+
+|        1 | 0.00013625 | SET profiling = 1                  |
+|        2 | 0.00024750 | SHOW engines                       |
+|        3 | 0.00007300 | SHOW TABLE                         |
+|        4 | 0.00017200 | SHOW TABLE ENGINE                  |
+|        5 | 0.00007050 | SHOW TABLE STATUS                  |
+|        6 | 0.00013125 | SELECT DATABASE()                  |
+|        7 | 0.00015500 | SELECT DATABASE()                  |
+|        8 | 0.00016200 | SELECT DATABASE()                  |
+|        9 | 0.00086625 | show databases                     |
+|       10 | 0.00158725 | show tables                        |
+|       11 | 0.00399650 | SHOW TABLE STATUS                  |
+|       12 | 0.00164600 | SHOW TABLE STATUS                  |
+|       13 | 0.02287950 | ALTER TABLE orders ENGINE = MyISAM |
++----------+------------+------------------------------------+
+13 row
+```
+Измените `engine` на `InnoDB` и **приведите время выполнения и запрос на изменения из профайлера в ответе**:
+```shell
+mysql> ALTER TABLE orders ENGINE = InnoDB;
+Query OK, 5 rows affected (0.03 sec)
+Records: 5  Duplicates: 0  Warnings: 0
 
-Поднимите новый пустой контейнер с PostgreSQL.
+mysql> SHOW PROFILES;
++----------+------------+------------------------------------+
+| Query_ID | Duration   | Query                              |
++----------+------------+------------------------------------+
+|        1 | 0.00013625 | SET profiling = 1                  |
+|        2 | 0.00024750 | SHOW engines                       |
+|        3 | 0.00007300 | SHOW TABLE                         |
+|        4 | 0.00017200 | SHOW TABLE ENGINE                  |
+|        5 | 0.00007050 | SHOW TABLE STATUS                  |
+|        6 | 0.00013125 | SELECT DATABASE()                  |
+|        7 | 0.00015500 | SELECT DATABASE()                  |
+|        8 | 0.00016200 | SELECT DATABASE()                  |
+|        9 | 0.00086625 | show databases                     |
+|       10 | 0.00158725 | show tables                        |
+|       11 | 0.00399650 | SHOW TABLE STATUS                  |
+|       12 | 0.00164600 | SHOW TABLE STATUS                  |
+|       13 | 0.02287950 | ALTER TABLE orders ENGINE = MyISAM |
+|       14 | 0.02460200 | ALTER TABLE orders ENGINE = InnoDB |
++----------+------------+------------------------------------+
+14 rows in set, 1 warning (0.00 sec)
+```
+## Задача 4 
 
-Восстановите БД test_db в новом контейнере.
+Изучите файл `my.cnf` в директории /etc/mysql.
 
-Приведите список операций, который вы применяли для бэкапа данных и восстановления. 
+Измените его согласно ТЗ (движок InnoDB):
+- Скорость IO важнее сохранности данных
+- Нужна компрессия таблиц для экономии места на диске
+- Размер буфера с незакоммиченными транзакциями 1 Мб
+- Буфер кеширования 30% от ОЗУ
+- Размер файла логов операций 100 Мб
+
+Приведите в ответе измененный файл `my.cnf`.
 
 ### Решение:
-Есть 2 основных способа осуществления резервного копирования, pg_dump для копирования базы данных, и pg_basebacup
-для резервного копирования всего кластера. Когда-то кто-то мне рассказывал что при использовании pg_dump могут быть 
-утеряны реляционные отношения в базе данных, вроде-как в случае восстановления может быть нарушена последовательность
-создания таблиц, что приведет к нарушению целостности базы данных, поэтому мы приняли решения использовать на наших
-серверах pg_basebackup, команда выглядит следующим образом:  
-`docker exec postgresql pg_basebackup -h localhost -U postgres -p 5432 -w -D /var/backups/pg_backup/datebase.backup -Ft`
-
-Последовательность восстановления будет выглядеть следующим образом:
-1. Остановить проект (docker-compose down)
-2. Очистить содержимое volume контейнера субд (/var/lib/docker/volumes/src_pg_data/_data/)
-3. Распаковать содержимое архива base.tar в volume контейнера субд.
-4. Распаковать содержимое архива pg_wal.tar в volume контейнера субд (/var/lib/docker/volumes/src_pg_data/_data/)
-5. Дописать в файл postgresql.conf строку `restore_command = 'cp /var/lib/postgresql/data/%f %p\'`
-6. Создать файл recovery.signal в директории СУБД
-7. Запустить проект (docker-compose up)
-
-
 ```shell
-root@vagrant:~# cd /devops-netology/src/
-root@vagrant:/devops-netology/src# docker-compose down
-[+] Running 2/2
- ⠿ Container postgresql  Removed                                                                                                                      0.2s
- ⠿ Network src_default   Removed                                                                                                                      0.1s
+vagrant@vagrant:~$ docker exec -ti mysql bash
+root@cf8bbdc06196:/# cat /etc/mysql/my.cnf
+# Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-root@vagrant:/devops-netology/src# rm -R /var/lib/docker/volumes/src_pg_data/_data/*
-root@vagrant:/devops-netology/src# cd /var/lib/docker/volumes/src_pg_backup/_data/datebase.backup
-root@vagrant:/var/lib/docker/volumes/src_pg_backup/_data/datebase.backup# cp base.tar ../../../src_pg_data/_data/
-root@vagrant:/var/lib/docker/volumes/src_pg_backup/_data/datebase.backup# cp pg_wal.tar ../../../src_pg_data/_data/
-root@vagrant:/var/lib/docker/volumes/src_pg_backup/_data/datebase.backup# cd ../../../src_pg_data/_data/
-root@vagrant:/var/lib/docker/volumes/src_pg_data/_data# touch recovery.signal
-root@vagrant:/var/lib/docker/volumes/src_pg_data/_data# tar -xf base.tar
-root@vagrant:/var/lib/docker/volumes/src_pg_data/_data# tar -xf pg_wal.tar
-root@vagrant:/var/lib/docker/volumes/src_pg_data/_data#  echo restore_command = \'cp /var/lib/postgresql/data/%f %p\' >> postgresql.conf
-root@vagrant:/var/lib/docker/volumes/src_pg_data/_data# cd /devops-netology/src/
-root@vagrant:/devops-netology/src# docker-compose up -d
-[+] Running 1/1
- ⠿ Container postgresql  Started    
-vagrant@vagrant:/devops-netology/src$ docker exec -it postgresql psql -U postgres
-psql (12.10 (Debian 12.10-1.pgdg110+1))
-Type "help" for help.
+#
+# The MySQL  Server configuration file.
+#
+# For explanations see
+# http://dev.mysql.com/doc/mysql/en/server-system-variables.html
 
-postgres=# \dl
-      Large objects
- ID | Owner | Description
-----+-------+-------------
-(0 rows)
+[mysqld]
+pid-file        = /var/run/mysqld/mysqld.pid
+socket          = /var/run/mysqld/mysqld.sock
+datadir         = /var/lib/mysql
+secure-file-priv= NULL
 
-postgres=# \d
-               List of relations
- Schema |      Name      |   Type   |  Owner
---------+----------------+----------+----------
- public | clients        | table    | postgres
- public | clients_id_seq | sequence | postgres
- public | orders         | table    | postgres
- public | orders_id_seq  | sequence | postgres
-(4 rows)
+# Custom config should go here
+!includedir /etc/mysql/conf.d/
 
-postgres=# \dt
-          List of relations
- Schema |  Name   | Type  |  Owner
---------+---------+-------+----------
- public | clients | table | postgres
- public | orders  | table | postgres
-(2 rows)
+root@cf8bbdc06196:/# echo innodb_flush_method = O_DSYNC >> /etc/mysql/my.cnf
+root@cf8bbdc06196:/# echo innodb_file_per_table = 1 >> /etc/mysql/my.cnf
+root@cf8bbdc06196:/# echo innodb_log_buffer_size = 1M  >> /etc/mysql/my.cnf
+root@cf8bbdc06196:/# echo innodb_buffer_pool_size = 307M >> /etc/mysql/my.cnf
+root@cf8bbdc06196:/# echo innodb_log_file_size = 100M >> /etc/mysql/my.cnf
+root@cf8bbdc06196:/# cat /etc/mysql/my.cnf
+# Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-postgres=# \d clients
-                                       Table "public.clients"
-      Column       |       Type        | Collation | Nullable |               Default
--------------------+-------------------+-----------+----------+-------------------------------------
- id                | integer           |           | not null | nextval('clients_id_seq'::regclass)
- фамилия           | character varying |           |          |
- страна проживания | character varying |           |          |
- заказ             | integer           |           |          |
-Indexes:
-    "clients_pkey" PRIMARY KEY, btree (id)
-Foreign-key constraints:
-    "clients_заказ_fkey" FOREIGN KEY ("заказ") REFERENCES orders(id)
+#
+# The MySQL  Server configuration file.
+#
+# For explanations see
+# http://dev.mysql.com/doc/mysql/en/server-system-variables.html
 
-postgres=# \d orders
-                                    Table "public.orders"
-    Column    |       Type        | Collation | Nullable |              Default
---------------+-------------------+-----------+----------+------------------------------------
- id           | integer           |           | not null | nextval('orders_id_seq'::regclass)
- наименование | character varying |           |          |
- цена         | integer           |           |          |
-Indexes:
-    "orders_pkey" PRIMARY KEY, btree (id)
-Referenced by:
-    TABLE "clients" CONSTRAINT "clients_заказ_fkey" FOREIGN KEY ("заказ") REFERENCES orders(id)
+[mysqld]
+pid-file        = /var/run/mysqld/mysqld.pid
+socket          = /var/run/mysqld/mysqld.sock
+datadir         = /var/lib/mysql
+secure-file-priv= NULL
 
-postgres=#
+# Custom config should go here
+!includedir /etc/mysql/conf.d/
+innodb_flush_method = O_DSYNC
+innodb_file_per_table = 1
+innodb_log_buffer_size = 1M
+innodb_buffer_pool_size = 307M
+innodb_log_file_size = 100M
+
 ```
-
-Как видно, базы успешно восстановлены.
