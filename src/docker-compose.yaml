@@ -1,17 +1,17 @@
 version: "3.1"
 
 volumes:
-  mysql_data: {}
-  mysql_backup: {}
+  pg_data: {}
+  pg_backup: {}
 
 services:
-  mysql:
-    image: mysql:8
-    command: --default-authentication-plugin=mysql_native_password
-    container_name: mysql
+  postgesql:
+    image: postgres:13
+    container_name: postgresql
     environment:
-      MYSQL_ROOT_PASSWORD: mysql
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
-      - mysql_data:/var/lib/mysql
-      - mysql_backup:/var/backups/mysql_backup
+      - pg_data:/var/lib/postgresql/data/
+      - pg_backup:/var/backups/pg_backup
     restart: always

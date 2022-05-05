@@ -1,375 +1,169 @@
-# Домашнее задание к занятию "6.3. MySQL"
+# Домашнее задание к занятию "6.4. PostgreSQL"
 
 ## Задача 1
 
-Используя docker поднимите инстанс MySQL (версию 8). Данные БД сохраните в volume.
+Используя docker поднимите инстанс PostgreSQL (версию 13). Данные БД сохраните в volume.
 
-Изучите [бэкап БД](https://github.com/netology-code/virt-homeworks/tree/master/06-db-03-mysql/test_data) и 
-восстановитесь из него.
+Подключитесь к БД PostgreSQL используя `psql`.
 
-Перейдите в управляющую консоль `mysql` внутри контейнера.
+Воспользуйтесь командой `\?` для вывода подсказки по имеющимся в `psql` управляющим командам.
 
-Используя команду `\h` получите список управляющих команд.
+**Найдите и приведите** управляющие команды для:
+- вывода списка БД
+- подключения к БД
+- вывода списка таблиц
+- вывода описания содержимого таблиц
+- выхода из psql
 
-Найдите команду для выдачи статуса БД и **приведите в ответе** из ее вывода версию сервера БД.
-
-Подключитесь к восстановленной БД и получите список таблиц из этой БД.
-
-**Приведите в ответе** количество записей с `price` > 300.
-
-В следующих заданиях мы будем продолжать работу с данным контейнером.
-
-### Решение
-* Используя docker поднимите инстанс MySQL (версию 8). Данные БД сохраните в volume.
+### Решение:
+* Используя docker поднимите инстанс PostgreSQL (версию 13). Данные БД сохраните в volume.
 ```yaml
 version: "3.1"
 
 volumes:
-  mysql_data: {}
-  mysql_backup: {}
+  pg_data: {}
+  pg_backup: {}
 
 services:
-  mysql:
-    image: mysql:8
-    command: --default-authentication-plugin=mysql_native_password
-    container_name: mysql
+  postgesql:
+    image: postgres:13
+    container_name: postgresql
     environment:
-      MYSQL_ROOT_PASSWORD: mysql
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
-      - mysql_data:/var/lib/mysql
-      - mysql_backup:/var/backups/mysql_backup
+      - pg_data:/var/lib/postgresql/data/
+      - pg_backup:/var/backups/pg_backup
     restart: always
 ```
-* Изучите бэкап БД и восстановитесь из него.
+* Найдите и приведите управляющие команды для вывода списка БД
 ```shell
-vagrant@vagrant:/devops-netology/src$ docker exec -ti mysql bash
-root@cf8bbdc06196:/# mysql --password=mysql test < /var/backups/mysql_backup/test_dump.sql
+postgres=# \l
+                                 List of databases                                 
+   Name    |  Owner   | Encoding |  Collate   |   Ctype    |   Access privileges   
+-----------+----------+----------+------------+------------+-----------------------
+ postgres  | postgres | UTF8     | en_US.utf8 | en_US.utf8 |                       
+ template0 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +
+           |          |          |            |            | postgres=CTc/postgres 
+ template1 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +
+           |          |          |            |            | postgres=CTc/postgres 
+(3 rows) 
 ```
-* Перейдите в управляющую консоль `mysql` внутри контейнера.
+* Найдите и приведите управляющие команды для - подключения к БД
 ```shell
-vagrant@vagrant:/devops-netology/src$ docker exec -ti mysql mysql -p mysql
-Enter password:
-Reading table information for completion of table and column names
-You can turn off this feature to get a quicker startup with -A
-
-Welcome to the MySQL monitor.  Commands end with ; or \g.
-Your MySQL connection id is 10
-Server version: 8.0.29 MySQL Community Server - GPL
-
-Copyright (c) 2000, 2022, Oracle and/or its affiliates.
-
-Oracle is a registered trademark of Oracle Corporation and/or its
-affiliates. Other names may be trademarks of their respective
-owners.
-
-Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
-
-mysql
+postgres=# \c postgres
+You are now connected to database "postgres" as user "postgres".
 ```
-* Используя команду \h получите список управляющих команд.
+* Найдите и приведите управляющие команды для - вывода списка таблиц
 ```shell
-mysql> \h
-
-For information about MySQL products and services, visit:
-   http://www.mysql.com/
-For developer information, including the MySQL Reference Manual, visit:
-   http://dev.mysql.com/
-To buy MySQL Enterprise support, training, or other products, visit:
-   https://shop.mysql.com/
-
-List of all MySQL commands:
-Note that all text commands must be first on line and end with ';'
-?         (\?) Synonym for `help'.
-clear     (\c) Clear the current input statement.
-connect   (\r) Reconnect to the server. Optional arguments are db and host.
-delimiter (\d) Set statement delimiter.
-edit      (\e) Edit command with $EDITOR.
-ego       (\G) Send command to mysql server, display result vertically.
-exit      (\q) Exit mysql. Same as quit.
-go        (\g) Send command to mysql server.
-help      (\h) Display this help.
-nopager   (\n) Disable pager, print to stdout.
-notee     (\t) Don't write into outfile.
-pager     (\P) Set PAGER [to_pager]. Print the query results via PAGER.
-print     (\p) Print current command.
-prompt    (\R) Change your mysql prompt.
-quit      (\q) Quit mysql.
-rehash    (\#) Rebuild completion hash.
-source    (\.) Execute an SQL script file. Takes a file name as an argument.
-status    (\s) Get status information from the server.
-system    (\!) Execute a system shell command.
-tee       (\T) Set outfile [to_outfile]. Append everything into given outfile.
-use       (\u) Use another database. Takes database name as argument.
-charset   (\C) Switch to another charset. Might be needed for processing binlog with multi-byte charsets.
-warnings  (\W) Show warnings after every statement.
-nowarning (\w) Don't show warnings after every statement.
-resetconnection(\x) Clean session context.
-query_attributes Sets string parameters (name1 value1 name2 value2 ...) for the next query to pick up.
-ssl_session_data_print Serializes the current SSL session data to stdout or file
-
-For server side help, type 'help contents'
-
-mysql> CREATE DATABASE test
-    -> ;
-Query OK, 1 row affected (0.00 sec)
+template1=# \dt
+Did not find any relations.
 ```
-* Найдите команду для выдачи статуса БД и приведите в ответе из ее вывода версию сервера БД.
+* Найдите и приведите управляющие команды для - вывода описания содержимого таблиц
 ```shell
-mysql> \s
---------------
-mysql  Ver 8.0.29 for Linux on x86_64 (MySQL Community Server - GPL)
-...
-Threads: 2  Questions: 112  Slow queries: 0  Opens: 216  Flush tables: 3  Open tables: 134  Queries per second avg: 0.068
---------------
+postgres=# \d
+Did not find any relations.
 ```
-* Подключитесь к восстановленной БД и получите список таблиц из этой БД.
+* Найдите и приведите управляющие команды для - выхода из psql
 ```shell
-mysql> USE test
-mysql> SHOW TABLES;
-+----------------+
-| Tables_in_test |
-+----------------+
-| orders         |
-+----------------+
-1 row in set (0.00 sec)
-
-```
-* Приведите в ответе количество записей с price > 300.
-```shell
-mysql> SELECT * FROM orders WHERE price > 300;
-+----+----------------+-------+
-| id | title          | price |
-+----+----------------+-------+
-|  2 | My little pony |   500 |
-+----+----------------+-------+
-1 row in set (0.00 sec)
-
+postgres=# \q
+vagrant@vagrant:/devops-netology/src$ 
 ```
 
 ## Задача 2
 
-Создайте пользователя test в БД c паролем test-pass, используя:
-- плагин авторизации mysql_native_password
-- срок истечения пароля - 180 дней 
-- количество попыток авторизации - 3 
-- максимальное количество запросов в час - 100
-- аттрибуты пользователя:
-    - Фамилия "Pretty"
-    - Имя "James"
+Используя `psql` создайте БД `test_database`.
 
-Предоставьте привилегии пользователю `test` на операции SELECT базы `test_db`.
-    
-Используя таблицу INFORMATION_SCHEMA.USER_ATTRIBUTES получите данные по пользователю `test` и 
-**приведите в ответе к задаче**.
+Изучите [бэкап БД](https://github.com/netology-code/virt-homeworks/tree/master/06-db-04-postgresql/test_data).
+
+Восстановите бэкап БД в `test_database`.
+
+Перейдите в управляющую консоль `psql` внутри контейнера.
+
+Подключитесь к восстановленной БД и проведите операцию ANALYZE для сбора статистики по таблице.
+
+Используя таблицу [pg_stats](https://postgrespro.ru/docs/postgresql/12/view-pg-stats), найдите столбец таблицы `orders` 
+с наибольшим средним значением размера элементов в байтах.
+
+**Приведите в ответе** команду, которую вы использовали для вычисления и полученный результат.
 
 ### Решение:
-* Создайте пользователя test в БД c паролем test-pass
+* Используя `psql` создайте БД `test_database`.
 ```shell
-mysql> CREATE USER 'test'
-    -> IDENTIFIED WITH mysql_native_password BY 'test-pass'
-    -> WITH MAX_QUERIES_PER_HOUR 100
-    -> PASSWORD EXPIRE INTERVAL 180 DAY
-    -> FAILED_LOGIN_ATTEMPTS 3
-    -> ATTRIBUTE '{"name": "James", "lastname": "Pretty"}';
-Query OK, 0 rows affected (0.01 sec)
+postgres=# CREATE DATABASE test_database;
+CREATE DATABASE
 ```
-* Предоставьте привилегии пользователю test на операции SELECT базы test_db.
-> Поскольку в задаче не было указано как назвать базу данных, у меня она называется не test_db, а test
+* Восстановите бэкап БД в `test_database`.
 ```shell
-mysql> GRANT SELECT ON test.* TO test;
-Query OK, 0 rows affected (0.01 sec)
+vagrant@vagrant:/devops-netology/src$ docker exec -ti postgresql bash
+root@4b0735b2d3ec:/# psql -U postgres test_database < /var/backups/pg_backup/test_dump.sql
+SET
+SET
+SET
+SET
+SET
+ set_config
+------------
+
+(1 row)
+
+SET
+SET
+SET
+SET
+SET
+SET
+CREATE TABLE
+ALTER TABLE
+CREATE SEQUENCE
+ALTER TABLE
+ALTER SEQUENCE
+ALTER TABLE
+COPY 8
+ setval
+--------
+      8
+(1 row)
+
+ALTER TABLE
 ```
-* Используя таблицу INFORMATION_SCHEMA.USER_ATTRIBUTES получите данные по пользователю test и приведите в ответе к задаче.
+* Перейдите в управляющую консоль `psql` внутри контейнера.
 ```shell
-mysql> SELECT * FROM INFORMATION_SCHEMA.USER_ATTRIBUTES WHERE USER = 'test';
-+------+------+-----------------------------------------+
-| USER | HOST | ATTRIBUTE                               |
-+------+------+-----------------------------------------+
-| test | %    | {"name": "James", "lastname": "Pretty"} |
-+------+------+-----------------------------------------+
-1 row in set (0.01 sec)
+vagrant@vagrant:/devops-netology/src$ docker exec -ti postgresql psql -U postgres
+psql (13.6 (Debian 13.6-1.pgdg110+1))
+Type "help" for help.
+
+postgres=# 
+```
+* Подключитесь к восстановленной БД и проведите операцию ANALYZE для сбора статистики по таблице.
+```shell
+postgres=# \c test_database 
+You are now connected to database "test_database" as user "postgres".
+test_database=# ANALYZE;
+ANALYZE
+```
+* Используя таблицу `pg_stats`, найдите столбец таблицы `orders` с наибольшим средним значением размера элементов 
+в байтах. Приведите в ответе команду, которую вы использовали для вычисления и полученный результат.
+```shell
+test_database=# SELECT attname, avg_width FROM pg_stats WHERE tablename = 'orders' ORDER BY attname DESC LIMIT 1;
+ attname | avg_width 
+---------+-----------
+ title   |        16
+(1 row)
 ```
 
 ## Задача 3
 
-Установите профилирование `SET profiling = 1`.
-Изучите вывод профилирования команд `SHOW PROFILES;`.
+Архитектор и администратор БД выяснили, что ваша таблица orders разрослась до невиданных размеров и
+поиск по ней занимает долгое время. Вам, как успешному выпускнику курсов DevOps в нетологии предложили
+провести разбиение таблицы на 2 (шардировать на orders_1 - price>499 и orders_2 - price<=499).
 
-Исследуйте, какой `engine` используется в таблице БД `test_db` и **приведите в ответе**.
+Предложите SQL-транзакцию для проведения данной операции.
 
-Измените `engine` и **приведите время выполнения и запрос на изменения из профайлера в ответе**:
-- на `MyISAM`
-- на `InnoDB`
+Можно ли было изначально исключить "ручное" разбиение при проектировании таблицы orders?
 
-### Решение
-* Установите профилирование `SET profiling = 1`. Изучите вывод профилирования команд `SHOW PROFILES;`.
-```shell
-mysql> SET profiling = 1;
-Query OK, 0 rows affected, 1 warning (0.00 sec)
-mysql> SHOW PROFILES;
-+----------+------------+-------------------+
-| Query_ID | Duration   | Query             |
-+----------+------------+-------------------+
-|        1 | 0.00013625 | SET profiling = 1 |
-+----------+------------+-------------------+
-1 row in set, 1 warning (0.00 sec)
-```
-* Исследуйте, какой `engine` используется в таблице БД `test_db` и **приведите в ответе**.
-```shell
-mysql> SHOW TABLE STATUS
-    -> ;
-+--------+--------+---------+------------+------+----------------+-------------+-----------------+--------------+-----------+----------------+-------------
---------+---------------------+------------+--------------------+----------+----------------+---------+
-| Name   | Engine | Version | Row_format | Rows | Avg_row_length | Data_length | Max_data_length | Index_length | Data_free | Auto_increment | Create_time
-        | Update_time         | Check_time | Collation          | Checksum | Create_options | Comment |
-+--------+--------+---------+------------+------+----------------+-------------+-----------------+--------------+-----------+----------------+-------------
---------+---------------------+------------+--------------------+----------+----------------+---------+
-| orders | InnoDB |      10 | Dynamic    |    5 |           3276 |       16384 |               0 |            0 |         0 |              6 | 2022-05-02 0
-9:18:38 | 2022-05-02 09:18:38 | NULL       | utf8mb4_0900_ai_ci |     NULL |                |         |
-+--------+--------+---------+------------+------+----------------+-------------+-----------------+--------------+-----------+----------------+-------------
---------+---------------------+------------+--------------------+----------+----------------+---------+
-1 row in set (0.01 sec)
+## Задача 4
 
+Используя утилиту `pg_dump` создайте бекап БД `test_database`.
 
-```
-Измените `engine` на `MyISAM` и **приведите время выполнения и запрос на изменения из профайлера в ответе**:
-```shell
-mysql> ALTER TABLE orders ENGINE = MyISAM;
-Query OK, 5 rows affected (0.03 sec)
-Records: 5  Duplicates: 0  Warnings: 0
-mysql> SHOW PROFILES;
-+----------+------------+------------------------------------+
-| Query_ID | Duration   | Query                              |
-+----------+------------+------------------------------------+
-|        1 | 0.00013625 | SET profiling = 1                  |
-|        2 | 0.00024750 | SHOW engines                       |
-|        3 | 0.00007300 | SHOW TABLE                         |
-|        4 | 0.00017200 | SHOW TABLE ENGINE                  |
-|        5 | 0.00007050 | SHOW TABLE STATUS                  |
-|        6 | 0.00013125 | SELECT DATABASE()                  |
-|        7 | 0.00015500 | SELECT DATABASE()                  |
-|        8 | 0.00016200 | SELECT DATABASE()                  |
-|        9 | 0.00086625 | show databases                     |
-|       10 | 0.00158725 | show tables                        |
-|       11 | 0.00399650 | SHOW TABLE STATUS                  |
-|       12 | 0.00164600 | SHOW TABLE STATUS                  |
-|       13 | 0.02287950 | ALTER TABLE orders ENGINE = MyISAM |
-+----------+------------+------------------------------------+
-13 row
-```
-Измените `engine` на `InnoDB` и **приведите время выполнения и запрос на изменения из профайлера в ответе**:
-```shell
-mysql> ALTER TABLE orders ENGINE = InnoDB;
-Query OK, 5 rows affected (0.03 sec)
-Records: 5  Duplicates: 0  Warnings: 0
-
-mysql> SHOW PROFILES;
-+----------+------------+------------------------------------+
-| Query_ID | Duration   | Query                              |
-+----------+------------+------------------------------------+
-|        1 | 0.00013625 | SET profiling = 1                  |
-|        2 | 0.00024750 | SHOW engines                       |
-|        3 | 0.00007300 | SHOW TABLE                         |
-|        4 | 0.00017200 | SHOW TABLE ENGINE                  |
-|        5 | 0.00007050 | SHOW TABLE STATUS                  |
-|        6 | 0.00013125 | SELECT DATABASE()                  |
-|        7 | 0.00015500 | SELECT DATABASE()                  |
-|        8 | 0.00016200 | SELECT DATABASE()                  |
-|        9 | 0.00086625 | show databases                     |
-|       10 | 0.00158725 | show tables                        |
-|       11 | 0.00399650 | SHOW TABLE STATUS                  |
-|       12 | 0.00164600 | SHOW TABLE STATUS                  |
-|       13 | 0.02287950 | ALTER TABLE orders ENGINE = MyISAM |
-|       14 | 0.02460200 | ALTER TABLE orders ENGINE = InnoDB |
-+----------+------------+------------------------------------+
-14 rows in set, 1 warning (0.00 sec)
-```
-## Задача 4 
-
-Изучите файл `my.cnf` в директории /etc/mysql.
-
-Измените его согласно ТЗ (движок InnoDB):
-- Скорость IO важнее сохранности данных
-- Нужна компрессия таблиц для экономии места на диске
-- Размер буфера с незакоммиченными транзакциями 1 Мб
-- Буфер кеширования 30% от ОЗУ
-- Размер файла логов операций 100 Мб
-
-Приведите в ответе измененный файл `my.cnf`.
-
-### Решение:
-```shell
-vagrant@vagrant:~$ docker exec -ti mysql bash
-root@cf8bbdc06196:/# cat /etc/mysql/my.cnf
-# Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; version 2 of the License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
-
-#
-# The MySQL  Server configuration file.
-#
-# For explanations see
-# http://dev.mysql.com/doc/mysql/en/server-system-variables.html
-
-[mysqld]
-pid-file        = /var/run/mysqld/mysqld.pid
-socket          = /var/run/mysqld/mysqld.sock
-datadir         = /var/lib/mysql
-secure-file-priv= NULL
-
-# Custom config should go here
-!includedir /etc/mysql/conf.d/
-
-root@cf8bbdc06196:/# echo innodb_flush_method = O_DSYNC >> /etc/mysql/my.cnf
-root@cf8bbdc06196:/# echo innodb_file_per_table = 1 >> /etc/mysql/my.cnf
-root@cf8bbdc06196:/# echo innodb_log_buffer_size = 1M  >> /etc/mysql/my.cnf
-root@cf8bbdc06196:/# echo innodb_buffer_pool_size = 307M >> /etc/mysql/my.cnf
-root@cf8bbdc06196:/# echo innodb_log_file_size = 100M >> /etc/mysql/my.cnf
-root@cf8bbdc06196:/# cat /etc/mysql/my.cnf
-# Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; version 2 of the License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
-
-#
-# The MySQL  Server configuration file.
-#
-# For explanations see
-# http://dev.mysql.com/doc/mysql/en/server-system-variables.html
-
-[mysqld]
-pid-file        = /var/run/mysqld/mysqld.pid
-socket          = /var/run/mysqld/mysqld.sock
-datadir         = /var/lib/mysql
-secure-file-priv= NULL
-
-# Custom config should go here
-!includedir /etc/mysql/conf.d/
-innodb_flush_method = O_DSYNC
-innodb_file_per_table = 1
-innodb_log_buffer_size = 1M
-innodb_buffer_pool_size = 307M
-innodb_log_file_size = 100M
-
-```
+Как бы вы доработали бэкап-файл, чтобы добавить уникальность значения столбца `title` для таблиц `test_database`?
