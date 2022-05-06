@@ -402,7 +402,7 @@ DENY UPDATE(fname,lname,company, city),SELECT ON customer TO PUBLIC;
 ```
 
 ### 6.2.6. Операторы управления транзакциями
-Пример транзакции для MySQL:
+Пример транзакции для PostgreSQL:
 ```PostgreSQL
 # начало транзакции
 BEGIN;
@@ -419,6 +419,7 @@ UPDATE accounts SET balance = balance + 100.00 WHERE name = 'Wally';
 # завершаем транзакцию
 COMMIT;
 ```
+Пример транзакции для MySQL:
 ```MySQL
 # начало транзакции
 START TRANSACTION;

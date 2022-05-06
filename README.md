@@ -162,6 +162,36 @@ test_database=# SELECT attname, avg_width FROM pg_stats WHERE tablename = 'order
 
 Можно ли было изначально исключить "ручное" разбиение при проектировании таблицы orders?
 
+### Решение:
+Как я выяснил, преобразовать таблицу в секционированную и обратно нельзя, так что будем пересоздавать таблицу через
+следующую транзакцию:
+```shell
+BEGIN;
+# установить изоляцию транзакций
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+# переименовать таблицу orders
+ALTER TABLE orders RENAME TO orders_copy;
+# создать таблицу orders
+CREATE TABLE orders (
+    id integer NOT NULL,
+    title character varying(80) NOT NULL,
+    price integer DEFAULT 0)
+	PARTITION BY RANGE (price);
+# создать таблицу 1
+CREATE TABLE orders_more499 PARTITION OF orders
+    FOR VALUES FROM (500) TO (2147483647);
+# создать таблицу 2
+CREATE TABLE orders_less500 PARTITION OF orders
+    FOR VALUES FROM (0) TO (500);
+# перенести из переименованной в orders
+INSERT INTO orders (id, title, price) SELECT * FROM orders_copy;
+# Установить индексы
+ALTER TABLE ONLY orders
+    ADD CONSTRAINT orders_pkey PRIMARY KEY (id);
+# Удалить таблицу copy
+DROP TABLE orders_copy;
+COMMIT;
+```
 ## Задача 4
 
 Используя утилиту `pg_dump` создайте бекап БД `test_database`.
