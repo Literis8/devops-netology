@@ -185,15 +185,80 @@ CREATE TABLE orders_less500 PARTITION OF orders
     FOR VALUES FROM (0) TO (500);
 # перенести из переименованной в orders
 INSERT INTO orders (id, title, price) SELECT * FROM orders_copy;
-# Установить индексы
-ALTER TABLE ONLY orders
-    ADD CONSTRAINT orders_pkey PRIMARY KEY (id);
+# сменить владельца последовательности значений id
+ALTER SEQUENCE orders_id_seq OWNED BY public.orders.id;
+# Возобновить последовательность значений для id
+ALTER TABLE ONLY orders ALTER COLUMN id SET DEFAULT nextval('public.orders_id_seq'::regclass);
 # Удалить таблицу copy
 DROP TABLE orders_copy;
 COMMIT;
+
+
+# Результат выполнения
+test_database=# insert into orders (title, price) values ('test less 499', 300), ('test more 500', 600);
+INSERT 0 2
+
+test_database=# select * FROM orders;
+  1 | War and peace        |   100
+  3 | Adventure psql time  |   300
+  4 | Server gravity falls |   300
+  5 | Log gossips          |   123
+  7 | Me and my bash-pet   |   499
+  9 | test less 499        |   300
+  2 | My little database   |   500
+  6 | WAL never lies       |   900
+  8 | Dbiezdmin            |   501
+ 10 | test more 500        |   600
+
+test_database=# select * FROM orders_less500;
+  1 | War and peace        |   100
+  3 | Adventure psql time  |   300
+  4 | Server gravity falls |   300
+  5 | Log gossips          |   123
+  7 | Me and my bash-pet   |   499
+  9 | test less 499        |   300
+
+test_database=# select * FROM orders_more499;
+  2 | My little database |   500
+  6 | WAL never lies     |   900
+  8 | Dbiezdmin          |   501
+ 10 | test more 500      |   600
+
 ```
+* Можно ли было изначально исключить "ручное" разбиение при проектировании таблицы orders?
+
+Можно, для этого достаточно из предложенной транзакции достаточно убрать манипуляции с переименованием и копированием
+данных
+
 ## Задача 4
 
 Используя утилиту `pg_dump` создайте бекап БД `test_database`.
 
 Как бы вы доработали бэкап-файл, чтобы добавить уникальность значения столбца `title` для таблиц `test_database`?
+
+### Решение:
+* Используя утилиту `pg_dump` создайте бекап БД `test_database`.
+```shell
+vagrant@vagrant:/devops-netology/src$ docker exec -ti postgresql pg_dump -U postgres --file /var/backups/pg_backup/test_database_dump.sql test_database
+```
+* Как бы вы доработали бэкап-файл, чтобы добавить уникальность значения столбца `title` для таблиц `test_database`?
+
+Довольно просто, достаточно добавить параметр `UNIQUE` в описание столбца таблицы (в случае шадрированной таблицы
+соответственно в описание всех 3-х таблиц)
+```sql
+CREATE TABLE public.orders (
+    id integer DEFAULT NULL NOT NULL,
+    title character varying(80) NOT NULL UNIQUE,
+    price integer DEFAULT 0
+);
+CREATE TABLE public.orders_less500 (
+    id integer DEFAULT NULL NOT NULL,
+    title character varying(80) NOT NULL UNIQUE,
+    price integer DEFAULT 0
+);
+CREATE TABLE public.orders_more499 (
+    id integer DEFAULT NULL NOT NULL,
+    title character varying(80) NOT NULL UNIQUE,
+    price integer DEFAULT 0
+);
+```
