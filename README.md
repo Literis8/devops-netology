@@ -1,264 +1,364 @@
-# Домашнее задание к занятию "6.4. PostgreSQL"
+# Домашнее задание к занятию "6.5. Elasticsearch"
 
 ## Задача 1
 
-Используя docker поднимите инстанс PostgreSQL (версию 13). Данные БД сохраните в volume.
+В этом задании вы потренируетесь в:
+- установке elasticsearch
+- первоначальном конфигурировании Elasticsearch
+- запуске elasticsearch в docker
 
-Подключитесь к БД PostgreSQL используя `psql`.
+Используя докер образ [centos:7](https://hub.docker.com/_/centos) как базовый и 
+[документацию по установке и запуску Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/current/targz.html):
 
-Воспользуйтесь командой `\?` для вывода подсказки по имеющимся в `psql` управляющим командам.
+- составьте Dockerfile-манифест для elasticsearch
+- соберите docker-образ и сделайте `push` в ваш docker.io репозиторий
+- запустите контейнер из получившегося образа и выполните запрос пути `/` с хост-машины
 
-**Найдите и приведите** управляющие команды для:
-- вывода списка БД
-- подключения к БД
-- вывода списка таблиц
-- вывода описания содержимого таблиц
-- выхода из psql
+Требования к `elasticsearch.yml`:
+- данные `path` должны сохраняться в `/var/lib`
+- имя ноды должно быть `netology_test`
+
+В ответе приведите:
+- текст Dockerfile манифеста
+- ссылку на образ в репозитории dockerhub
+- ответ `elasticsearch` на запрос пути `/` в json виде
+
+Подсказки:
+- возможно вам понадобится установка пакета perl-Digest-SHA для корректной работы пакета shasum
+- при сетевых проблемах внимательно изучите кластерные и сетевые настройки в elasticsearch.yml
+- при некоторых проблемах вам поможет docker директива ulimit
+- elasticsearch в логах обычно описывает проблему и пути ее решения
+
+Далее мы будем работать с данным экземпляром elasticsearch.
 
 ### Решение:
-* Используя docker поднимите инстанс PostgreSQL (версию 13). Данные БД сохраните в volume.
+Манифест Dockerfile:
 ```yaml
-version: "3.1"
+FROM centos:7
+RUN yum update -y && \
+yum install wget  perl-Digest-SHA -y
+RUN wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.2.0-linux-x86_64.tar.gz; \
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.2.0-linux-x86_64.tar.gz.sha512; \
+shasum -a 512 -c elasticsearch-8.2.0-linux-x86_64.tar.gz.sha512
+RUN tar -xzf elasticsearch-8.2.0-linux-x86_64.tar.gz
+RUN groupadd elasticsearch; \
+useradd elasticsearch -g elasticsearch; \
+chown -R elasticsearch:elasticsearch /elasticsearch-8.2.0; \
+mkdir /var/lib/data /var/lib/logs; \
+chown elasticsearch:elasticsearch /var/lib/data /var/lib/logs
+ENV ES_HOME=/elasticsearch-8.2.0
+COPY elasticsearch.yml /elasticsearch-8.2.0/config/
+WORKDIR /elasticsearch-8.2.0
+USER elasticsearch
+CMD [ "/elasticsearch-8.2.0/bin/elasticsearch" ]
+```
+Содержимое конфигурационного файла elasticsearch.yml
+```yaml
+node.name: 'netology_test'
 
-volumes:
-  pg_data: {}
-  pg_backup: {}
+network.host: 0.0.0.0
+discovery.type: single-node
 
-services:
-  postgesql:
-    image: postgres:13
-    container_name: postgresql
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - pg_data:/var/lib/postgresql/data/
-      - pg_backup:/var/backups/pg_backup
-    restart: always
-```
-* Найдите и приведите управляющие команды для вывода списка БД
-```shell
-postgres=# \l
-                                 List of databases                                 
-   Name    |  Owner   | Encoding |  Collate   |   Ctype    |   Access privileges   
------------+----------+----------+------------+------------+-----------------------
- postgres  | postgres | UTF8     | en_US.utf8 | en_US.utf8 |                       
- template0 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +
-           |          |          |            |            | postgres=CTc/postgres 
- template1 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +
-           |          |          |            |            | postgres=CTc/postgres 
-(3 rows) 
-```
-* Найдите и приведите управляющие команды для - подключения к БД
-```shell
-postgres=# \c postgres
-You are now connected to database "postgres" as user "postgres".
-```
-* Найдите и приведите управляющие команды для - вывода списка таблиц
-```shell
-template1=# \dt
-Did not find any relations.
-```
-* Найдите и приведите управляющие команды для - вывода описания содержимого таблиц
-```shell
-postgres=# \d
-Did not find any relations.
-```
-* Найдите и приведите управляющие команды для - выхода из psql
-```shell
-postgres=# \q
-vagrant@vagrant:/devops-netology/src$ 
-```
+path.data: /var/lib/data
+path.logs: /var/lib/logs
 
+xpack.security.enabled: false
+```
+Ссылка репозиторий в Dockerhub <https://hub.docker.com/repository/docker/literis8/elasticsearch>
+
+Ответ `elasticsearch` на запрос пути `/` в json виде
+```json
+{
+  "name" : "netology_test",
+  "cluster_name" : "elasticsearch",
+  "cluster_uuid" : "yjFbii7ESq23m8Z-Ymh-1Q",
+  "version" : {
+    "number" : "8.2.0",
+    "build_flavor" : "default",
+    "build_type" : "tar",
+    "build_hash" : "b174af62e8dd9f4ac4d25875e9381ffe2b9282c5",
+    "build_date" : "2022-04-20T10:35:10.180408517Z",
+    "build_snapshot" : false,
+    "lucene_version" : "9.1.0",
+    "minimum_wire_compatibility_version" : "7.17.0",
+    "minimum_index_compatibility_version" : "7.0.0"
+  },
+  "tagline" : "You Know, for Search"
+}
+
+```
 ## Задача 2
 
-Используя `psql` создайте БД `test_database`.
+В этом задании вы научитесь:
+- создавать и удалять индексы
+- изучать состояние кластера
+- обосновывать причину деградации доступности данных
 
-Изучите [бэкап БД](https://github.com/netology-code/virt-homeworks/tree/master/06-db-04-postgresql/test_data).
+Ознакомьтесь с [документацией](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html) 
+и добавьте в `elasticsearch` 3 индекса, в соответствии со таблицей:
 
-Восстановите бэкап БД в `test_database`.
+| Имя | Количество реплик | Количество шард |
+|-----|-------------------|-----------------|
+| ind-1| 0 | 1 |
+| ind-2 | 1 | 2 |
+| ind-3 | 2 | 4 |
 
-Перейдите в управляющую консоль `psql` внутри контейнера.
+Получите список индексов и их статусов, используя API и **приведите в ответе** на задание.
 
-Подключитесь к восстановленной БД и проведите операцию ANALYZE для сбора статистики по таблице.
+Получите состояние кластера `elasticsearch`, используя API.
 
-Используя таблицу [pg_stats](https://postgrespro.ru/docs/postgresql/12/view-pg-stats), найдите столбец таблицы `orders` 
-с наибольшим средним значением размера элементов в байтах.
+Как вы думаете, почему часть индексов и кластер находится в состоянии yellow?
 
-**Приведите в ответе** команду, которую вы использовали для вычисления и полученный результат.
+Удалите все индексы.
+
+**Важно**
+
+При проектировании кластера elasticsearch нужно корректно рассчитывать количество реплик и шард,
+иначе возможна потеря данных индексов, вплоть до полной, при деградации системы.
 
 ### Решение:
-* Используя `psql` создайте БД `test_database`.
+* добавьте в `elasticsearch` 3 индекса, в соответствии со таблицей
 ```shell
-postgres=# CREATE DATABASE test_database;
-CREATE DATABASE
+vagrant@vagrant:/devops-netology/src$ curl -X PUT localhost:9200/ind-1 -H 'Content-Type: application/json' -d '
+{
+"settings": {
+"index": {
+"number_of_replicas": 0,
+"number_of_shards": 1
+}
+}
+}'
+{"acknowledged":true,"shards_acknowledged":true,"index":"ind-1"}
+vagrant@vagrant:/devops-netology/src$ curl -X PUT localhost:9200/ind-2 -H 'Content-Type: application/json' -d '
+{
+"settings": {
+"index": {
+"number_of_replicas": 1,
+"number_of_shards": 2
+}
+}
+}'
+{"acknowledged":true,"shards_acknowledged":true,"index":"ind-2"}
+vagrant@vagrant:/devops-netology/src$ curl -X PUT localhost:9200/ind-3 -H 'Content-Type: application/json' -d '
+{
+"settings": {
+"index": {
+"number_of_replicas": 2,
+"number_of_shards": 4
+}
+}
+}'
+{"acknowledged":true,"shards_acknowledged":true,"index":"ind-3"}
 ```
-* Восстановите бэкап БД в `test_database`.
+* Получите список индексов и их статусов, используя API и **приведите в ответе** на задание
 ```shell
-vagrant@vagrant:/devops-netology/src$ docker exec -ti postgresql bash
-root@4b0735b2d3ec:/# psql -U postgres test_database < /var/backups/pg_backup/test_dump.sql
-SET
-SET
-SET
-SET
-SET
- set_config
-------------
-
-(1 row)
-
-SET
-SET
-SET
-SET
-SET
-SET
-CREATE TABLE
-ALTER TABLE
-CREATE SEQUENCE
-ALTER TABLE
-ALTER SEQUENCE
-ALTER TABLE
-COPY 8
- setval
---------
-      8
-(1 row)
-
-ALTER TABLE
+vagrant@vagrant:/devops-netology/src$ curl http://localhost:9200/_cat/indices
+yellow open ind-2 vJhb3BypQgKHKcoJ_vMtrA 2 1 0 0 450b 450b
+green  open ind-1 vjCXNzmZSZWzgDT_cY9PFQ 1 0 0 0 225b 225b
+yellow open ind-3 tn4qofctQJeZeVCpaGijbA 4 2 0 0 900b 900b
 ```
-* Перейдите в управляющую консоль `psql` внутри контейнера.
+* Получите состояние кластера `elasticsearch`, используя API.
 ```shell
-vagrant@vagrant:/devops-netology/src$ docker exec -ti postgresql psql -U postgres
-psql (13.6 (Debian 13.6-1.pgdg110+1))
-Type "help" for help.
+vagrant@vagrant:/devops-netology/src$ curl http://localhost:9200/_cluster/health?pretty
+{
+  "cluster_name" : "elasticsearch",
+  "status" : "yellow",
+  "timed_out" : false,
+  "number_of_nodes" : 1,
+  "number_of_data_nodes" : 1,
+  "active_primary_shards" : 8,
+  "active_shards" : 8,
+  "relocating_shards" : 0,
+  "initializing_shards" : 0,
+  "unassigned_shards" : 10,
+  "delayed_unassigned_shards" : 0,
+  "number_of_pending_tasks" : 0,
+  "number_of_in_flight_fetch" : 0,
+  "task_max_waiting_in_queue_millis" : 0,
+  "active_shards_percent_as_number" : 44.44444444444444
+}
+```
+* Как вы думаете, почему часть индексов и кластер находится в состоянии yellow?
 
-postgres=# 
-```
-* Подключитесь к восстановленной БД и проведите операцию ANALYZE для сбора статистики по таблице.
+Статус yellow в связи с тем что мы добавили реплики и шарды, но не обозначили где они располагаются, в связи с этим
+система видит их как UNASSIGNED.
+
+* Удалите все индексы.
 ```shell
-postgres=# \c test_database 
-You are now connected to database "test_database" as user "postgres".
-test_database=# ANALYZE;
-ANALYZE
-```
-* Используя таблицу `pg_stats`, найдите столбец таблицы `orders` с наибольшим средним значением размера элементов 
-в байтах. Приведите в ответе команду, которую вы использовали для вычисления и полученный результат.
-```shell
-test_database=# SELECT attname, avg_width FROM pg_stats WHERE tablename = 'orders' ORDER BY attname DESC LIMIT 1;
- attname | avg_width 
----------+-----------
- title   |        16
-(1 row)
+vagrant@vagrant:/devops-netology/src$ curl -X DELETE http://localhost:9200/ind-1
+{"acknowledged":true}
+vagrant@vagrant:/devops-netology/src$ curl -X DELETE http://localhost:9200/ind-2
+{"acknowledged":true}
+vagrant@vagrant:/devops-netology/src$ curl -X DELETE http://localhost:9200/ind-3
+{"acknowledged":true}
 ```
 
 ## Задача 3
 
-Архитектор и администратор БД выяснили, что ваша таблица orders разрослась до невиданных размеров и
-поиск по ней занимает долгое время. Вам, как успешному выпускнику курсов DevOps в нетологии предложили
-провести разбиение таблицы на 2 (шардировать на orders_1 - price>499 и orders_2 - price<=499).
+В данном задании вы научитесь:
+- создавать бэкапы данных
+- восстанавливать индексы из бэкапов
 
-Предложите SQL-транзакцию для проведения данной операции.
+Создайте директорию `{путь до корневой директории с elasticsearch в образе}/snapshots`.
 
-Можно ли было изначально исключить "ручное" разбиение при проектировании таблицы orders?
+Используя API [зарегистрируйте](https://www.elastic.co/guide/en/elasticsearch/reference/current/snapshots-register-repository.html#snapshots-register-repository) 
+данную директорию как `snapshot repository` c именем `netology_backup`.
 
-### Решение:
-Как я выяснил, преобразовать таблицу в секционированную и обратно нельзя, так что будем пересоздавать таблицу через
-следующую транзакцию:
-```shell
-BEGIN;
-# установить изоляцию транзакций
-SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
-# переименовать таблицу orders
-ALTER TABLE orders RENAME TO orders_copy;
-# создать таблицу orders
-CREATE TABLE orders (
-    id integer NOT NULL,
-    title character varying(80) NOT NULL,
-    price integer DEFAULT 0)
-	PARTITION BY RANGE (price);
-# создать таблицу 1
-CREATE TABLE orders_more499 PARTITION OF orders
-    FOR VALUES FROM (500) TO (2147483647);
-# создать таблицу 2
-CREATE TABLE orders_less500 PARTITION OF orders
-    FOR VALUES FROM (0) TO (500);
-# перенести из переименованной в orders
-INSERT INTO orders (id, title, price) SELECT * FROM orders_copy;
-# сменить владельца последовательности значений id
-ALTER SEQUENCE orders_id_seq OWNED BY public.orders.id;
-# Возобновить последовательность значений для id
-ALTER TABLE ONLY orders ALTER COLUMN id SET DEFAULT nextval('public.orders_id_seq'::regclass);
-# Удалить таблицу copy
-DROP TABLE orders_copy;
-COMMIT;
+**Приведите в ответе** запрос API и результат вызова API для создания репозитория.
 
+Создайте индекс `test` с 0 реплик и 1 шардом и **приведите в ответе** список индексов.
 
-# Результат выполнения
-test_database=# insert into orders (title, price) values ('test less 499', 300), ('test more 500', 600);
-INSERT 0 2
+[Создайте `snapshot`](https://www.elastic.co/guide/en/elasticsearch/reference/current/snapshots-take-snapshot.html) 
+состояния кластера `elasticsearch`.
 
-test_database=# select * FROM orders;
-  1 | War and peace        |   100
-  3 | Adventure psql time  |   300
-  4 | Server gravity falls |   300
-  5 | Log gossips          |   123
-  7 | Me and my bash-pet   |   499
-  9 | test less 499        |   300
-  2 | My little database   |   500
-  6 | WAL never lies       |   900
-  8 | Dbiezdmin            |   501
- 10 | test more 500        |   600
+**Приведите в ответе** список файлов в директории со `snapshot`ами.
 
-test_database=# select * FROM orders_less500;
-  1 | War and peace        |   100
-  3 | Adventure psql time  |   300
-  4 | Server gravity falls |   300
-  5 | Log gossips          |   123
-  7 | Me and my bash-pet   |   499
-  9 | test less 499        |   300
+Удалите индекс `test` и создайте индекс `test-2`. **Приведите в ответе** список индексов.
 
-test_database=# select * FROM orders_more499;
-  2 | My little database |   500
-  6 | WAL never lies     |   900
-  8 | Dbiezdmin          |   501
- 10 | test more 500      |   600
+[Восстановите](https://www.elastic.co/guide/en/elasticsearch/reference/current/snapshots-restore-snapshot.html) состояние
+кластера `elasticsearch` из `snapshot`, созданного ранее. 
 
-```
-* Можно ли было изначально исключить "ручное" разбиение при проектировании таблицы orders?
+**Приведите в ответе** запрос к API восстановления и итоговый список индексов.
 
-Можно, для этого достаточно из предложенной транзакции достаточно убрать манипуляции с переименованием и копированием
-данных
-
-## Задача 4
-
-Используя утилиту `pg_dump` создайте бекап БД `test_database`.
-
-Как бы вы доработали бэкап-файл, чтобы добавить уникальность значения столбца `title` для таблиц `test_database`?
+Подсказки:
+- возможно вам понадобится доработать `elasticsearch.yml` в части директивы `path.repo` и перезапустить `elasticsearch`
 
 ### Решение:
-* Используя утилиту `pg_dump` создайте бекап БД `test_database`.
-```shell
-vagrant@vagrant:/devops-netology/src$ docker exec -ti postgresql pg_dump -U postgres --file /var/backups/pg_backup/test_database_dump.sql test_database
+* Для выполнения данного задания были внесены изменения в Dockerfile и в elasticsearch.yml:
+```dockerfile
+FROM centos:7
+RUN yum update -y && \
+yum install wget  perl-Digest-SHA -y
+RUN wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.2.0-linux-x86_64.tar.gz; \
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.2.0-linux-x86_64.tar.gz.sha512; \
+shasum -a 512 -c elasticsearch-8.2.0-linux-x86_64.tar.gz.sha512
+RUN tar -xzf elasticsearch-8.2.0-linux-x86_64.tar.gz
+RUN groupadd elasticsearch; \
+useradd elasticsearch -g elasticsearch; \
+mkdir /var/lib/data /var/lib/logs /elasticsearch-8.2.0/snapshots; \
+chown -R elasticsearch:elasticsearch /elasticsearch-8.2.0; \
+chown elasticsearch:elasticsearch /var/lib/data /var/lib/logs
+ENV ES_HOME=/elasticsearch-8.2.0
+COPY elasticsearch.yml /elasticsearch-8.2.0/config/
+WORKDIR /elasticsearch-8.2.0
+USER elasticsearch
+CMD [ "/elasticsearch-8.2.0/bin/elasticsearch" ]
 ```
-* Как бы вы доработали бэкап-файл, чтобы добавить уникальность значения столбца `title` для таблиц `test_database`?
+```yaml
+node.name: 'netology_test'
 
-Довольно просто, достаточно добавить параметр `UNIQUE` в описание столбца таблицы (в случае шадрированной таблицы
-соответственно в описание всех 3-х таблиц)
-```sql
-CREATE TABLE public.orders (
-    id integer DEFAULT NULL NOT NULL,
-    title character varying(80) NOT NULL UNIQUE,
-    price integer DEFAULT 0
-);
-CREATE TABLE public.orders_less500 (
-    id integer DEFAULT NULL NOT NULL,
-    title character varying(80) NOT NULL UNIQUE,
-    price integer DEFAULT 0
-);
-CREATE TABLE public.orders_more499 (
-    id integer DEFAULT NULL NOT NULL,
-    title character varying(80) NOT NULL UNIQUE,
-    price integer DEFAULT 0
-);
+network.host: 0.0.0.0
+discovery.type: single-node
+
+path.data: /var/lib/data
+path.logs: /var/lib/logs
+path.repo: /elasticsearch-8.2.0/snapshots
+
+xpack.security.enabled: false
+```
+* Используя API зарегистрируйте данную директорию как `snapshot repository` c именем `netology_backup`.
+```shell
+vagrant@vagrant:/devops-netology/src$ curl -X PUT localhost:9200/_snapshot/netology_backup -H 'Content-Type: application/json' -d'
+{
+"type": "fs",
+"settings": {
+"location": "backup_location"
+}
+}'
+{"acknowledged":true}
+```
+* Создайте индекс `test` с 0 реплик и 1 шардом и **приведите в ответе** список индексов.
+```shell
+vagrant@vagrant:/devops-netology/src$ curl -X PUT localhost:9200/test -H 'Content-Type: application/json' -d '
+{
+"settings": {
+"index": {
+"number_of_replicas": 0,
+"number_of_shards": 1
+}
+}
+}'
+{"acknowledged":true,"shards_acknowledged":true,"index":"test"}
+vagrant@vagrant:/devops-netology/src$ curl http://localhost:9200/_cat/indices
+green open test q0RnF01pRU6xgaR0FRy5ag 1 0 0 0 225b 225b
+```
+* Создайте `snapshot` состояния кластера `elasticsearch`.
+```shell
+vagrant@vagrant:/devops-netology/src$ curl -X PUT "localhost:9200/_snapshot/netology_backup/nl_snapshot?wait_for_completion=true&pretty"
+{
+  "snapshot" : {
+    "snapshot" : "nl_snapshot",
+    "uuid" : "NAcR5nkhRE6WrvO55Yj4Ug",
+    "repository" : "netology_backup",
+    "version_id" : 8020099,
+    "version" : "8.2.0",
+    "indices" : [
+      ".geoip_databases",
+      "test"
+    ],
+    "data_streams" : [ ],
+    "include_global_state" : true,
+    "state" : "SUCCESS",
+    "start_time" : "2022-05-10T14:56:20.917Z",
+    "start_time_in_millis" : 1652194580917,
+    "end_time" : "2022-05-10T14:56:22.321Z",
+    "end_time_in_millis" : 1652194582321,
+    "duration_in_millis" : 1404,
+    "failures" : [ ],
+    "shards" : {
+      "total" : 2,
+      "failed" : 0,
+      "successful" : 2
+    },
+    "feature_states" : [
+      {
+        "feature_name" : "geoip",
+        "indices" : [
+          ".geoip_databases"
+        ]
+      }
+    ]
+  }
+}
+```
+* **Приведите в ответе** список файлов в директории со `snapshot`ами.
+```shell
+vagrant@vagrant:/devops-netology/src$ docker exec -ti elastic bash
+[elasticsearch@b68f7b853ceb elasticsearch-8.2.0]$ ls -la ./snapshots/backup_location/
+total 44
+drwxr-xr-x 3 elasticsearch elasticsearch  4096 May 10 14:56 .
+drwxr-xr-x 1 elasticsearch elasticsearch  4096 May 10 14:48 ..
+-rw-r--r-- 1 elasticsearch elasticsearch   844 May 10 14:56 index-0
+-rw-r--r-- 1 elasticsearch elasticsearch     8 May 10 14:56 index.latest
+drwxr-xr-x 4 elasticsearch elasticsearch  4096 May 10 14:56 indices
+-rw-r--r-- 1 elasticsearch elasticsearch 18230 May 10 14:56 meta-NAcR5nkhRE6WrvO55Yj4Ug.dat
+-rw-r--r-- 1 elasticsearch elasticsearch   353 May 10 14:56 snap-NAcR5nkhRE6WrvO55Yj4Ug.dat
+```
+* Удалите индекс `test` и создайте индекс `test-2`. **Приведите в ответе** список индексов.
+```shell
+vagrant@vagrant:/devops-netology/src$ curl -X DELETE localhost:9200/test
+{"acknowledged":true}
+vagrant@vagrant:/devops-netology/src$ curl -X PUT localhost:9200/test-2 -H 'Content-Type: application/json' -d '
+{
+"settings": {
+"index": {
+"number_of_replicas": 0,
+"number_of_shards": 1
+}
+}
+}'
+{"acknowledged":true,"shards_acknowledged":true,"index":"test-2"}
+vagrant@vagrant:/devops-netology/src$ curl http://localhost:9200/_cat/indices
+green open test-2 SaqTkrWNT9-e8amowRKddQ 1 0 0 0 225b 225b
+```
+* Восстановите состояние кластера `elasticsearch` из `snapshot`, созданного ранее. 
+```shell
+vagrant@vagrant:/devops-netology/src$ curl -X POST localhost:9200/_snapshot/netology_backup/nl_snapshot/_restore
+{"accepted":true}
+```
+**Приведите в ответе** запрос к API восстановления и итоговый список индексов.
+```shell
+vagrant@vagrant:/devops-netology/src$ curl http://localhost:9200/_cat/indices
+green open test-2 SaqTkrWNT9-e8amowRKddQ 1 0 0 0 225b 225b
+green open test   wAhxcCaWSE2vcfnWrui8OA 1 0 0 0 225b 225b
 ```

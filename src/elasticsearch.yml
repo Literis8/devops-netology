@@ -1,0 +1,10 @@
+node.name: 'netology_test'
+
+network.host: 0.0.0.0
+discovery.type: single-node
+
+path.data: /var/lib/data
+path.logs: /var/lib/logs
+path.repo: /elasticsearch-8.2.0/snapshots
+
+xpack.security.enabled: false
