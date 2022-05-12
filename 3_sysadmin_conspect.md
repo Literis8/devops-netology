@@ -437,7 +437,7 @@ socket – бывает сетевым (для соединения удален
 `chattr +|-<atr>` - изменить дополнительный атрибут
 ### 3.5.3 Организация хранения данных в Linux
 Схема уровней данных:  
-![](img/saconsp_5_3_1_fslayout.webp)
+![](img/3_sysadmin/saconsp_5_3_1_fslayout.webp)
 
 `lsblk` - посмотреть список блочных устройств
 ### 3.5.4 RAID/mdadm
@@ -507,16 +507,16 @@ socket – бывает сетевым (для соединения удален
 
 ## 3.7 Компьютерные сети (лекция 2)
 ### 3.7.1 Модель OSI
-![Распределение протоколов по уровням модели OSI](img/saconsp_7_1_1_osi.png)
+![Распределение протоколов по уровням модели OSI](img/3_sysadmin/saconsp_7_1_1_osi.png)
 
 **Модель передачи данных:**
-![Модель передачи данных](img/saconsp_7_1_2_data_transport_model.png)
+![Модель передачи данных](img/3_sysadmin/saconsp_7_1_2_data_transport_model.png)
 
 **Инкапсуляция данных:**
-![Инкапсуляция данных](img/saconsp_7_1_3_incapsulation.png)
+![Инкапсуляция данных](img/3_sysadmin/saconsp_7_1_3_incapsulation.png)
 ### 3.7.2 L1: Физика
 **Модули SFP:**
-![Модули SFP](img/saconsp_7_2_1_sfp.png)
+![Модули SFP](img/3_sysadmin/saconsp_7_2_1_sfp.png)
 
 **Параметры Ethernet - Speed, Duplex:**
 * 10/100 Mbit, 1/10/25/40/100 Gbit;
@@ -528,7 +528,7 @@ socket – бывает сетевым (для соединения удален
 * Multi Mode - позволяет передать несколько световых сигналов (за счет разной длинны волны) в одном волокне
 
 **Оптические коннекторы:**
-![Оптические коннекторы](img/saconsp_7_2_2_connectors.png)
+![Оптические коннекторы](img/3_sysadmin/saconsp_7_2_2_connectors.png)
 
 `ip -c -br link` - отобразить состояние интерфейсов (`-c` - подкрасить `-br` - сокращенный вывод `link` - 
 физические соединения)
@@ -764,12 +764,12 @@ protocol direct {
 `birdc` - запустить консоль Bird
 ### 3.8.2 Отказоустойчивость сети
 Дизайн сети в дата-центре:  
-![Дизайн сети в дата-центре](img/saconsp_8_2_1_datacenter.png)
+![Дизайн сети в дата-центре](img/3_sysadmin/saconsp_8_2_1_datacenter.png)
 
 **ECMP** – несколько равнозначных маршрутов
 
 Отказоустойчивость внутри ДЦ:  
-![Отказоустойчивость внутри ДЦ](img/saconsp_8_2_2_faulttolerance.png)
+![Отказоустойчивость внутри ДЦ](img/3_sysadmin/saconsp_8_2_2_faulttolerance.png)
 
 **Сходимость сети** – время требуемое на перестроение маршрутов при падении линка.
 
@@ -784,25 +784,25 @@ BFD протокол:
 * Сервера располагаются, как правило, в разных ДЦ;
 * При отказе одного ДЦ – трафик уйдет в оставшиеся живые ДЦ.
 
-![Anycast](img/saconsp_8_2_3_anycast.png)
+![Anycast](img/3_sysadmin/saconsp_8_2_3_anycast.png)
 
 First-Hop Redundancy Protocols (VRRP, HSRP) - протокол резервирования шлюза, несколько шлюзов работают под одним IP
 при потере связи с одним маршрут идет через другой.
-![First-Hop Redundancy Protocols](img/saconsp_8_2_4_VRRP-HSRP.gif)
+![First-Hop Redundancy Protocols](img/3_sysadmin/saconsp_8_2_4_VRRP-HSRP.gif)
 
 `Keepalived` – реализация VRRP на Linux Сервисы, требующие высокой доступности, обычно используют плавающие IP-адреса. 
 Плавающий IP-адрес может быть автоматически переброшен между несколькими серверами в ходе переключения на резерв 
 из-за выхода из строя основного сервера или для обновления программного обеспечения без простоев.  
 [Пример настройки](https://habr.com/ru/post/524688/)
 ### 3.8.3 L4: TCP/UDP
-![TCP/UDP](img/saconsp_8_2_5_tcp-udp.png)
+![TCP/UDP](img/3_sysadmin/saconsp_8_2_5_tcp-udp.png)
 
 TCP 3-Way Handshake: SYN, SYN-ACK, ACK:
-![3-Way Handshake](img/saconsp_8_2_6_tcphandshake.png)
+![3-Way Handshake](img/3_sysadmin/saconsp_8_2_6_tcphandshake.png)
 
 **UDP** - работает без установки сессии. UDP используется обычно для протоколов чувствительных к задержке, например,
 RTP для передачи аудио. Также используется для протоколов не чувствительных к потерям пакетов, например, Syslog, SNMP.
-![tcp vs udp](img/saconsp_8_2_7_tcpvsudp.png)
+![tcp vs udp](img/3_sysadmin/saconsp_8_2_7_tcpvsudp.png)
 
 `ss` – Socket Statistics, утилита пришедшая на замену netstat выдает информацию об открытых портах и установленных 
 соединениях
@@ -943,20 +943,20 @@ stream {
 * Public ключ передается по открытым каналам, Private ключ – секретный;
 * Секретность строится на основе Односторонней функции
 
-![Асимметричное шифрование](img/saconsp_9_3_1_asymetric.png)
+![Асимметричное шифрование](img/3_sysadmin/saconsp_9_3_1_asymetric.png)
 
 **Сравнение симметричного и ассиметричного шифрования:**  
 * **Симметричное:** один ключ для шифрования-дешифрования, ключ секретный.
 * **Асимметричное:** один ключ для дешифрования (секретный), второй для шифрования (открытый). У каждой стороны по паре
 ключей.
 
-![Сравнение симметричного и ассиметричного шифрования](img/saconsp_9_3_2_symasym.png)
+![Сравнение симметричного и ассиметричного шифрования](img/3_sysadmin/saconsp_9_3_2_symasym.png)
 
 **HTTPS – SSL/TLS сертификаты и Root CA** - В основе цепочка доверия серверов сертификации. Ответственность 
 распределяется иерархически, аналогично иерархии серверов в DNS.
 
 Пример: бесплатный центр сертификации Let’s Encrypt.  
-![](img/saconsp_9_3_3_letsencrypt.png)
+![](img/3_sysadmin/saconsp_9_3_3_letsencrypt.png)
 
 **Self signed certificate** - самоподписанный сертификат применимо для внутрисетевого использования
 
@@ -1108,7 +1108,7 @@ ssh-keyscan -H <host> >> ~/.ssh/known_hosts # -H for Hashed
 ```
 **[HashiCorp Vault](https://github.com/hashicorp/vault)**
 
-![HashiCorp](img/saconsp_9_4_1_hashicorp.webp)
+![HashiCorp](img/3_sysadmin/saconsp_9_4_1_hashicorp.webp)
 
 [Managing SSH Access at Scale with HashiCorp Vault](https://www.hashicorp.com/blog/managing-ssh-access-at-scale-with-hashicorp-vault)  
 [Управление секретами при помощи Hashicorp Vault в Авито](https://www.youtube.com/watch?v=oDdDPU6moTs)
@@ -1116,16 +1116,16 @@ ssh-keyscan -H <host> >> ~/.ssh/known_hosts # -H for Hashed
 ### 3.9.5 Firewall. NAT. ACL
 **Статический NAT** - Трансляция IP адресов настроена заранее.
 
-![Статический NAT](img/saconsp_9_5_1_staticnat.gif)
+![Статический NAT](img/3_sysadmin/saconsp_9_5_1_staticnat.gif)
 
 **Динамический NAT** - IP адреса выделяются из NAT пула динамически.
 
-![Динамический NAT](img/saconsp_9_5_2_dynamicnat.gif)
+![Динамический NAT](img/3_sysadmin/saconsp_9_5_2_dynamicnat.gif)
 
 **NAT Overload (masquerade)** - Один публичный адрес используется для всей внутренней сети. Трансляция IP адресов привязывается 
 к L4 портам.
 
-![NAT Overload](img/saconsp_9_5_3_natoverload.gif)
+![NAT Overload](img/3_sysadmin/saconsp_9_5_3_natoverload.gif)
 
 **Firewall в linux – iptables**
 ```shell

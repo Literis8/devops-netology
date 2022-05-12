@@ -14,7 +14,7 @@
 Такое окружение называют набором логических ресурсов или виртуальной машиной.
 
 Наборы ресурсов виртуальных машин:  
-![VM](img/virtconsp_1_1_1.PNG)
+![VM](img/5_virtualisation/virtconsp_1_1_1.PNG)
 
 ### 5.1.2 Что такое гипервизор?
 Гипервизор — это монитор виртуальных машин — программа, обеспечивающая одновременное (параллельное) выполнение 
@@ -45,28 +45,28 @@
 
 **Полная (аппаратная) виртуализация** использует менеджер виртуальных машин (гипервизор), который осуществляет связь
 между гостевой операционной системой и аппаратными средствами физического сервера:  
-![Full Virtualization](img/virtconsp_1_3_1.PNG)
+![Full Virtualization](img/5_virtualisation/virtconsp_1_3_1.PNG)
 
 **Примеры решений использующих полную (аппаратную) виртуализацию**:  
-![Vendors](img/virtconsp_1_3_2.PNG)
+![Vendors](img/5_virtualisation/virtconsp_1_3_2.PNG)
 
 **Паравиртуализация** разделяет процесс с гостевой ОС. Гипервизор модифицирует ядро гостевой ВМ для разделения доступа
 к аппаратным средствам физического сервера:  
-![Paravirtualisation](img/virtconsp_1_3_3.PNG)
+![Paravirtualisation](img/5_virtualisation/virtconsp_1_3_3.PNG)
 
 **Примеры решений использующих паравиртуализацию**:  
-![Vendors](img/virtconsp_1_3_4.PNG)
+![Vendors](img/5_virtualisation/virtconsp_1_3_4.PNG)
 
 **Виртуализация уровня ОС** позволяет запускать изолированные и безопасные ВМ на одном хосте, но не позволяет запускать
 ОС с ядрами, отличными от типа ядра базовой операционной системы:  
-![OS virtualization](img/virtconsp_1_3_5.PNG)
+![OS virtualization](img/5_virtualisation/virtconsp_1_3_5.PNG)
 
 **Примеры решений использующих виртуализацию уровня ОС**:  
-![Vendors](img/virtconsp_1_3_6.PNG)
+![Vendors](img/5_virtualisation/virtconsp_1_3_6.PNG)
 
 ### 5.1.4 Коммерческие продукты
 #### VMWare  
-![VMWare](img/virtconsp_1_4_1.PNG)
+![VMWare](img/5_virtualisation/virtconsp_1_4_1.PNG)
 
 **VMWare** предлагает множество решений для виртуализации, в частности vSphere, который используется, как основа для 
 кластеризации и обеспечения отказоустойчивости.
@@ -91,7 +91,7 @@ Hypervisor.
 * Требует высокого уровня подготовки инженеров
 
 #### Hyper-V
-![Hyper-V](img/virtconsp_1_4_2.PNG)
+![Hyper-V](img/5_virtualisation/virtconsp_1_4_2.PNG)
 
 **Hyper-V от Microsoft** встроен непосредственно в Windows Server, хотя он также может быть установлен как 
 Hyper-V Server, который является автономным.
@@ -674,7 +674,7 @@ Docker хостом и напрямую использует сеть хоста
 **Stateful** — после завершения работы контейнера его результат сохраняется во внешних хранилищах (Volumes).
 
 ### 5.3.3. Архитектура Docker
-![docker arch](img/virtconsp_3_3_1.svg)
+![docker arch](img/5_virtualisation/virtconsp_3_3_1.svg)
 
 [Подробнее](https://docs.docker.com/get-started/overview)
 
@@ -1111,7 +1111,7 @@ _Большим преимуществом использования Docker Com
 
 Этот инструмент предлагает те же возможности, что и Docker, но позволяет работать с более сложными конфигурациями.
 
-![1](img/virtconsp_4_2_1.PNG)
+![1](img/5_virtualisation/virtconsp_4_2_1.PNG)
 
 ### 5.4.2. Структура Docker Compose
 Имя файла `docker-compose.yaml` или `docker-compose.yml`, расширение может быть либо `.yaml`, либо `.yml`
@@ -1348,7 +1348,7 @@ $ yc compute image list
 ```
 Образ ОС доступен в UI: Yandex.Cloud:
 
-![yandex UI](img/virtconsp_4_5_1.PNG)
+![yandex UI](img/5_virtualisation/virtconsp_4_5_1.PNG)
 
 #### Создание ВМ в Yandex.Cloud
 ```shell
@@ -1520,13 +1520,13 @@ $ docker service rollback my-service
 прерывается_, тем самым защищая нас от ситуации, когда в кластере не останется рабочих реплик.
 
 ### 5.5.2 Архитектура Docker Swarm
-![Swarm](img/virtconsp_5_1_1.PNG)
+![Swarm](img/5_virtualisation/virtconsp_5_1_1.PNG)
 
-![Swarm](img/virtconsp_5_1_2.PNG)
+![Swarm](img/5_virtualisation/virtconsp_5_1_2.PNG)
 
-![Swarm](img/virtconsp_5_1_3.PNG)
+![Swarm](img/5_virtualisation/virtconsp_5_1_3.PNG)
 
-![Swarm](img/virtconsp_5_1_4.PNG)
+![Swarm](img/5_virtualisation/virtconsp_5_1_4.PNG)
 
 #### Сети в кластере Docker Swarm
 При разворачивании Swarm кластера _на VM с публичными IP-адресами хорошей практикой является настройка правил
@@ -1645,7 +1645,7 @@ Removing network nginx_nginx
 * **Устойчивость к разделению** (англ. partition tolerance) — расщепление распределенной системы на несколько 
 изолированных секций не приводит к некорректности отклика от каждой из секций.
 
-![CAP](img/virtconsp_5_5_1.PNG)
+![CAP](img/5_virtualisation/virtconsp_5_5_1.PNG)
 
 **CA** (Availability + Consistency – Parition tolerance), когда данные во всех узлах кластера согласованы и доступны, 
 но не устойчивы к разделению.
