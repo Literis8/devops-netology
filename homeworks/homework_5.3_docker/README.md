@@ -39,7 +39,7 @@ FROM nginx:1.21.6-alpine
 COPY ./index.html /usr/share/nginx/html
 ```
 ```shell
-vagrant@vagrant:/devops-netology/ex.5.3$ docker build -t literis8/nginx-netology .
+vagrant@vagrant:/devops-netology/src$ docker build -t literis8/nginx-netology .
 Sending build context to Docker daemon  3.072kB
 Step 1/2 : FROM nginx:1.21.6-alpine
 1.21.6-alpine: Pulling from library/nginx
@@ -57,10 +57,10 @@ Step 2/2 : COPY ./index.html /usr/share/nginx/html
 Successfully built 7902c0b259d7
 Successfully tagged literis8/nginx-netology:latest
 
-vagrant@vagrant:/devops-netology/ex.5.3$ docker run --name literis-nginx -d -p 8080:80 literis8/nginx-netology
+vagrant@vagrant:/devops-netology/src$ docker run --name literis-nginx -d -p 8080:80 literis8/nginx-netology
 562bdac3745b32c60fccb244c029d9ae4f186006e4c4413959efe1016ba22980
 
-vagrant@vagrant:/devops-netology/ex.5.3$ curl http://localhost:8080/
+vagrant@vagrant:/devops-netology/src$ curl http://localhost:8080/
 <html>
 <head>
 Hey, Netology
@@ -70,7 +70,7 @@ Hey, Netology
 </body>
 </html>
 
-vagrant@vagrant:/devops-netology/ex.5.3$ docker push literis8/nginx-netology
+vagrant@vagrant:/devops-netology/src$ docker push literis8/nginx-netology
 Using default tag: latest
 The push refers to repository [docker.io/literis8/nginx-netology]
 c5f4a7318c1b: Pushed

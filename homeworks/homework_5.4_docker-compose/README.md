@@ -33,7 +33,7 @@ root@vagrant:/devops-netology/src/packer# yc compute image list
 
 ```
 
-![Образы](ex5.4/img/image_list.PNG)
+![Образы](img/image_list.PNG)
 
 ## Задача 2
 Создать вашу первую виртуальную машину в Яндекс.Облаке.
@@ -43,7 +43,7 @@ root@vagrant:/devops-netology/src/packer# yc compute image list
 * Скриншот страницы свойств созданной ВМ.
 
 ### Ответ: 
-![Свойства виртуальной машины](ex5.4/img/vm_propertys.PNG)
+![Свойства виртуальной машины](img/vm_propertys.PNG)
 
 ## Задача 3
 Создать ваш первый готовый к боевой эксплуатации компонент мониторинга, состоящий из стека микросервисов.
@@ -53,5 +53,5 @@ root@vagrant:/devops-netology/src/packer# yc compute image list
 * Скриншот работающего веб-интерфейса Grafana с текущими метриками
 
 ### Ответ:
-![Grafana](ex5.4/img/graphana.PNG)
+![Grafana](img/graphana.PNG)
 
