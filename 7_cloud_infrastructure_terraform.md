@@ -593,3 +593,144 @@ submodule
 * variables.tf
 * outputs.tf
 * any_other_files.tf
+
+## 7.2a Использование Yandex Cloud
+### 7.2a.1. Что такое Yandex.Cloud?
+**Yandex.Cloud** - облачная платформа от Яндекса, позволяющая поднять нужное количество ресурсов и настроить их 
+по своему усмотрению
+
+Иными словами, **Yandex.Cloud** позволяет:
+* Создавать шаблонные ресурсы (для БД, registry, DNS и т.д.)
+* Создавать простые VM для последующей гибкой настройки на ваше усмотрение
+* Создавать инфраструктуру "на лету"
+* Платить только за используемое время
+
+Официальная страница [Yandex.Cloud](https://cloud.yandex.ru/)
+
+### 7.2a.2. Способы создания VM
+**VM** можно создавать при помощи:
+* [web-интерфейс](https://console.cloud.yandex.ru/)
+* [yandex cli](https://cloud.yandex.ru/docs/cli/quickstart)
+* [terraform](https://cloud.yandex.ru/docs/solutions/infrastructure-management/terraform-quickstart)
+* [ansible](https://github.com/arenadata/ansible-module-yandex-cloud)
+
+Во всех случаях, кроме использования **ansible-plugin**, для управления хостами через **ansible** необходимо описать их
+в **inventory**
+
+### 7.2a.3. Статический Inventory
+Вид **inventory**, который мы чаще всего видим, по сути - файл (yaml или ini) в котором перечислены hosts, groups 
+и дополнительные параметры.
+```yamlex
+---
+prod: # Группа серверов
+  children:
+    nginx:
+      hosts:
+        prod-ff-74669-02:
+          ansible_host: 255.245.12.32
+          ansible_user: prod
+  children:
+    application:
+      hosts:
+        174.96.45.23:
+test:
+  children:
+    nginx:
+      hosts:
+        localhost:
+          ansible_connection: local
+```
+
+#### Cтруктура директории с Playbook
+```
+group_vars/  
+group_vars/all/  
+group_vars/all/some_variable.yml  
+group_vars/<group_name>/  
+inventory/  
+inventory/prod.yml  
+inventory/test.yml  
+roles/  
+roles/<role_fodlers>/  
+site.yml  
+requirement.yml  
+```
+```
+inventory/
+inventory/prod/
+inventory/prod/group_vars/
+inventory/prod/group_vars/all/
+inventory/prod/group_vars/all/some_variable.yml
+inventory/prod/group_vars/<group_name>/
+inventory/prod/hosts.yml
+roles/
+roles/<role_fodlers>/
+site.yml
+requirement.yml
+```
+
+### 7.2a.4. Динамический Inventory
+Так как **ansible**, в момент исполнения содержит все данные в **json** формате, а **inventory** для него это всегда
+перечисление **hosts** в **groups** с их возможными параметрами:
+* Для построения динамического **inventory** должен существовать некий 
+[скрипт](https://github.com/st8f/community.general/blob/yc_compute/plugins/inventory/yc_compute.py), который сможет 
+передавать json на выход с описанием **hosts** в облаке
+* Если существует модуль для создания **hosts** в облаке - он должен уметь собирать динамическое **inventory** 
+в процессе создания **hosts**
+
+### 7.2a.5. Использование Ansible
+#### Модули для создания инстансов
+**Ansible** имеет набор модулей для создания инстансов:
+* **AWS**
+* **OpenStack**
+* **k8s**
+* **docker**
+* **podman**
+* **Google Cloud**
+* **Microsoft Azure**
+* **Vultr**
+
+Полный перечень модулей можно посмотреть на 
+[официальной странице](https://docs.ansible.com/ansible/2.9/modules/list_of_cloud_modules.html)
+
+### Модули для управления inventory
+**Ansible** имеет набор модулей для создания inventory:
+* **AWS**
+* **OpenStack**
+* **k8s**
+* **docker**
+* **Google Cloud**
+* **Microsoft Azure**
+* **Vultr**
+
+Полный перечень модулей можно посмотреть 
+на [официальной странице](https://docs.ansible.com/ansible/latest/collections/index_inventory.html)
+
+#### Как написать Playbook?
+Изначально, нужно ответить на два вопроса:
+* Для чего нам нужен **playbook**?
+* На какие подзадачи можно разделить цель?
+
+Далее, нужно работать над содержанием **playbook**:
+* Приготовить структуру директорий
+* Приготовить стартовые файлы
+* Организовать **inventory** для тестовых прогонов
+* Описать структуру **plays** и **tasks** внутри
+* При необходимости - параметризировать все tasks при помощи **vars**
+
+#### Схема будущего решения
+![Схема будущего решения](img/7_iac/iac_2a_5_1.PNG)
+
+#### Схема целевого решения
+![Схема целевого решения](img/7_iac/iac_2a_5_2.PNG)
+
+#### Как запустить Playbook?
+* Первый запуск стоит осуществлять или на тестовом окружении или с флагом:  
+`ansible-playbook -i inventory/<inv_file>.yml <playbook_name>.yml --check`
+* Если были найдены ошибки:  
+`ansible-playbook -i inventory/<inv_file>.yml <playbook_name>.yml --start-at-task <task_name>`
+* Для запуска исполнения в полуинтерактивном виде:  
+`ansible-playbook -i inventory/<inv_file>.yml <playbook_name>.yml --step`
+* Полноценный запуск **playbook** в целевом виде должен выглядеть:  
+`ansible-playbook -i inventory/<inv_file>.yml <playbook_name>.yml`
+
