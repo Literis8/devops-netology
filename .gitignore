@@ -44,4 +44,8 @@ override.tf.json
 terraform.rc
 
 # Ignore variables
-src/terraform/variables.tf
+terraform/variables.tf
+homeworks/homework_7.2_TF_sintax/src/terraform/variables.tf
+
+# Ignore terraform lock file
+.terraform.lock.hcl
