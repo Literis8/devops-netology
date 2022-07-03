@@ -1260,7 +1260,7 @@ Please enter your numeric choice: 1
 Your profile default Compute zone has been set to 'ru-central1-a'.
 
 $ yc config list
-token: AQTAAAWXO0wAATuкvqUL29UBkxhnH-lGv22qUw
+token: ***********************************
 cloud-id: b1gu1gt5nqi6lqgu3t7s
 folder-id: b1gaec42k169jqpo02f7
 compute-default-zone: ru-central1-a

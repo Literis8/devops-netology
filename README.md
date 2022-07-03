@@ -1,142 +1,376 @@
-# Домашнее задание к занятию "7.1. Инфраструктура как код"
+# Домашнее задание к занятию "7.2. Облачные провайдеры и синтаксис Terraform."
 
-## Задача 1. Выбор инструментов. 
- 
-### Легенда
- 
-Через час совещание на котором менеджер расскажет о новом проекте. Начать работу над которым надо 
-будет уже сегодня. 
-На данный момент известно, что это будет сервис, который ваша компания будет предоставлять внешним заказчикам.
-Первое время, скорее всего, будет один внешний клиент, со временем внешних клиентов станет больше.
+Зачастую разбираться в новых инструментах гораздо интересней понимая то, как они работают изнутри. 
+Поэтому в рамках первого *необязательного* задания предлагается завести свою учетную запись в AWS (Amazon Web Services) или Yandex.Cloud.
+Идеально будет познакомится с обоими облаками, потому что они отличаются. 
 
-Так же по разговорам в компании есть вероятность, что техническое задание еще не четкое, что приведет к большому
-количеству небольших релизов, тестирований интеграций, откатов, доработок, то есть скучно не будет.  
-   
-Вам, как девопс инженеру, будет необходимо принять решение об инструментах для организации инфраструктуры.
-На данный момент в вашей компании уже используются следующие инструменты: 
-- остатки Сloud Formation, 
-- некоторые образы сделаны при помощи Packer,
-- год назад начали активно использовать Terraform, 
-- разработчики привыкли использовать Docker, 
-- уже есть большая база Kubernetes конфигураций, 
-- для автоматизации процессов используется Teamcity, 
-- также есть совсем немного Ansible скриптов, 
-- и ряд bash скриптов для упрощения рутинных задач.  
+## Задача 1 (вариант с AWS). Регистрация в aws и знакомство с основами (необязательно, но крайне желательно).
 
-Для этого в рамках совещания надо будет выяснить подробности о проекте, что бы в итоге определиться с инструментами:
+Остальные задания можно будет выполнять и без этого аккаунта, но с ним можно будет увидеть полный цикл процессов. 
 
-1. Какой тип инфраструктуры будем использовать для этого проекта: изменяемый или не изменяемый?
-1. Будет ли центральный сервер для управления инфраструктурой?
-1. Будут ли агенты на серверах?
-1. Будут ли использованы средства для управления конфигурацией или инициализации ресурсов? 
- 
-В связи с тем, что проект стартует уже сегодня, в рамках совещания надо будет определиться со всеми этими вопросами.
+AWS предоставляет достаточно много бесплатных ресурсов в первый год после регистрации, подробно описано [здесь](https://aws.amazon.com/free/).
+1. Создайте аккаут aws.
+1. Установите c aws-cli https://aws.amazon.com/cli/.
+1. Выполните первичную настройку aws-sli https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html.
+1. Создайте IAM политику для терраформа c правами
+    * AmazonEC2FullAccess
+    * AmazonS3FullAccess
+    * AmazonDynamoDBFullAccess
+    * AmazonRDSFullAccess
+    * CloudWatchFullAccess
+    * IAMFullAccess
+1. Добавьте переменные окружения 
+    ```
+    export AWS_ACCESS_KEY_ID=(your access key id)
+    export AWS_SECRET_ACCESS_KEY=(your secret access key)
+    ```
+1. Создайте, остановите и удалите ec2 инстанс (любой с пометкой `free tier`) через веб интерфейс. 
 
-### В результате задачи необходимо
-
-1. Ответить на четыре вопроса представленных в разделе "Легенда". 
-1. Какие инструменты из уже используемых вы хотели бы использовать для нового проекта? 
-1. Хотите ли рассмотреть возможность внедрения новых инструментов для этого проекта? 
-
-Если для ответа на эти вопросы недостаточно информации, то напишите какие моменты уточните на совещании.
+В виде результата задания приложите вывод команды `aws configure list`.
 
 ### Решение:
-1.1 Для проекта я бы использовал не изменяемую инфраструктуру и в связи с тем что у нас имеется довольно большое кол-во
-различных инструментов IaC вносить изменения стоит только в код и по средствам CI/CD их распространять. В случае
-изменяемой среды прийдется еще дополнительно вести документацию по этим изменениям, а судя по перспективам этих 
-изменений будет очень много. 
+К сожалению изза отсутствия у меня иностранной банковской карты я не могу воспользоваться бесплатными сервисами AWS,
+в связи с этим я вынужден пропустить данную задачу.
 
-1.2 Поскольку вся инфраструктура у нас прописана как код думаю что необходимости в центральном сервере нет. Однако, я
-не особо сильно знаком с таким инструментом как TeamCity, возможно что для его работы требуется центральный сервер 
-управления инфраструктурой, в таком случае данный сервер нужен.
+## Задача 1 (Вариант с Yandex.Cloud). Регистрация в ЯО и знакомство с основами (необязательно, но крайне желательно).
 
-1.3 Packer, Terraform, Ansible работают без агентов, так что смысла в использовании агентов я не вижу, тем более агент
-это допалнительная точка отказа которую надо мониторить.
-
-1.4 Да, тем более что у нас есть наработки по данным средствам.
-
-2-3. Я бы использовал в первую очередь те сервисы с которыми я знаком и работал, а именно: 
-* Packer для подготовки образов; 
-* Terraform - для сборки виртуальных машин;
-* Docker - маст хэв как мне кажется в любом современном проекте=)
-* вместо Kubernets я бы использовал Docker Swarm и Docker compose, но только потому, что я с ними лучше знаком, однако, 
-поскольку у нас есть большая база конфигураций для кубернетс, возможно рациональней было бы получше его изучить 
-и испольовать уже имеющиеся наработки;
-* вместо Teamcity я бы использовал средства CI/CD GitLab, опять же только из соображений того что у меня в нем больше
-опыта; 
-* Ansible - как средство конфигурации виртуальных машин;
-* ну и Bash скрипты для задач резервного копирования и т.п.
-
-## Задача 2. Установка терраформ. 
-
-Официальный сайт: https://www.terraform.io/
-
-Установите терраформ при помощи менеджера пакетов используемого в вашей операционной системе.
-В виде результата этой задачи приложите вывод команды `terraform --version`.
+1. Подробная инструкция на русском языке содержится [здесь](https://cloud.yandex.ru/docs/solutions/infrastructure-management/terraform-quickstart).
+2. Обратите внимание на период бесплатного использования после регистрации аккаунта. 
+3. Используйте раздел "Подготовьте облако к работе" для регистрации аккаунта. Далее раздел "Настройте провайдер" для подготовки
+базового терраформ конфига.
+4. Воспользуйтесь [инструкцией](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs) на сайте терраформа, что бы 
+не указывать авторизационный токен в коде, а терраформ провайдер брал его из переменных окружений.
 
 ### Решение:
-Для установки Terraform я использовал следующий код в Vagrantfile моей виртуальной машины:
-```ruby
-# -*- mode: ruby -*-
-# vi: set ft=ruby :
+С инструкцией ознакомился, аккаунт остался еще с предыдущих заданий, используем его.
 
-Vagrant.configure("2") do |config|
-  config.vm.box = "bento/ubuntu-20.04"
-  config.vm.network "public_network"
-  config.vm.synced_folder "..", "/devops-netology"
-  config.vm.provider "virtualbox" do |vb|
-    vb.customize ["modifyvm", :id, "--nested-hw-virt", "on"]
-  end
-  config.vm.provision "shell", inline: <<-SHELL
-  ### Установка docker
-    apt-get update && apt-get upgrade
-    apt-get install linux-image-extra-$(uname -r) linux-image-extra-virtual
-    apt-get install apt-transport-https ca-certificates curl software-properties-common
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
-    apt-get update && apt-cache policy docker-ce
-    sudo apt-get install -y docker-ce
-    usermod -aG docker vagrant
-  ### Установка Terraform
-    curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
-    sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-    sudo apt-get update && sudo apt-get install terraform
-  SHELL
-end
-```
-Вывод `terraform --version`:
+## Задача 2. Создание aws ec2 или yandex_compute_instance через терраформ. 
+
+1. В каталоге `terraform` вашего основного репозитория, который был создан в начале курсе, создайте файл `main.tf` и `versions.tf`.
+2. Зарегистрируйте провайдер 
+   1. для [aws](https://registry.terraform.io/providers/hashicorp/aws/latest/docs). В файл `main.tf` добавьте
+   блок `provider`, а в `versions.tf` блок `terraform` с вложенным блоком `required_providers`. Укажите любой выбранный вами регион 
+   внутри блока `provider`.
+   2. либо для [yandex.cloud](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs). Подробную инструкцию можно найти 
+   [здесь](https://cloud.yandex.ru/docs/solutions/infrastructure-management/terraform-quickstart).
+3. Внимание! В гит репозиторий нельзя пушить ваши личные ключи доступа к аккаунту. Поэтому в предыдущем задании мы указывали
+их в виде переменных окружения. 
+4. В файле `main.tf` воспользуйтесь блоком `data "aws_ami` для поиска ami образа последнего Ubuntu.  
+5. В файле `main.tf` создайте рессурс 
+   1. либо [ec2 instance](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance).
+   Постарайтесь указать как можно больше параметров для его определения. Минимальный набор параметров указан в первом блоке 
+   `Example Usage`, но желательно, указать большее количество параметров.
+   2. либо [yandex_compute_image](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs/resources/compute_image).
+6. Также в случае использования aws:
+   1. Добавьте data-блоки `aws_caller_identity` и `aws_region`.
+   2. В файл `outputs.tf` поместить блоки `output` с данными об используемых в данный момент: 
+       * AWS account ID,
+       * AWS user ID,
+       * AWS регион, который используется в данный момент, 
+       * Приватный IP ec2 инстансы,
+       * Идентификатор подсети в которой создан инстанс.  
+7. Если вы выполнили первый пункт, то добейтесь того, что бы команда `terraform plan` выполнялась без ошибок. 
+
+
+В качестве результата задания предоставьте:
+1. Ответ на вопрос: при помощи какого инструмента (из разобранных на прошлом занятии) можно создать свой образ ami?
+1. Ссылку на репозиторий с исходной конфигурацией терраформа.  
+
+### Решение
+Указываем источник провайдера в `~/.terraformrc`
 ```shell
-vagrant@vagrant:~$ terraform --version
-Terraform v1.1.9
-on linux_amd64
-
-Your version of Terraform is out of date! The latest version
-is 1.2.0. You can update by downloading from https://www.terraform.io/downloads.html
+provider_installation {
+  network_mirror {
+    url = "https://terraform-mirror.yandexcloud.net/"
+    include = ["registry.terraform.io/*/*"]
+  }
+  direct {
+    exclude = ["registry.terraform.io/*/*"]
+  }
+}
 ```
 
-## Задача 3. Поддержка легаси кода. 
+Создаем файл `variables.tf` и указываем данные YC (файл добавлен в gitignore для шаблона используется файл 
+`variables.tf.example`)
+```terraform
+variable "YC_TOKEN" {
+  default = "******************************"
+}
+variable "YC_CLOUD_ID" {
+  default = "******************************"
+}
+variable "YC_FOLDER_ID" {
+  default = "******************************"
+}
+variable "YC_ZONE" {
+  default = "******************************"
+}
+```
 
-В какой-то момент вы обновили терраформ до новой версии, например с 0.12 до 0.13. 
-А код одного из проектов настолько устарел, что не может работать с версией 0.13. 
-В связи с этим необходимо сделать так, чтобы вы могли одновременно использовать последнюю версию терраформа установленную при помощи
-штатного менеджера пакетов и устаревшую версию 0.12. 
+Создаем файл `provider.tf`
+```terraform
+terraform {
+  required_providers {
+    yandex = {
+      source = "yandex-cloud/yandex"
+    }
+  }
+  required_version = ">= 0.13"
+}
 
-В виде результата этой задачи приложите вывод `--version` двух версий терраформа доступных на вашем компьютере 
-или виртуальной машине.
+provider "yandex" {
+  token     = "${var.YC_TOKEN}"
+  cloud_id  = "${var.YC_CLOUD_ID}"
+  folder_id = "${var.YC_FOLDER_ID}"
+  zone      = "${var.YC_ZONE}"
+}
+```
 
-### Решение:
-Как вариант можно использовать для старой версии докер образ:
+Инициализируем провайдера:
 ```shell
-vagrant@vagrant:~$ terraform --version
-Terraform v1.1.9
-on linux_amd64
+vagrant@vagrant:~$ cd /devops-netology/src/terraform/
+vagrant@vagrant:/devops-netology/src/terraform$ terraform init
 
-Your version of Terraform is out of date! The latest version
-is 1.2.0. You can update by downloading from https://www.terraform.io/downloads.html
-vagrant@vagrant:~$ docker run -i -t hashicorp/terraform:0.12.29 --version
-Terraform v0.12.29
-vagrant@vagrant:~$ 
+Initializing the backend...
+
+Initializing provider plugins...
+- Finding latest version of yandex-cloud/yandex...
+- Installing yandex-cloud/yandex v0.76.0...
+- Installed yandex-cloud/yandex v0.76.0 (unauthenticated)
+
+Terraform has created a lock file .terraform.lock.hcl to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
 ```
-Кстати, для данного решение не требуется использовать VPN для подключения к серверам Hashicorp =)
 
-Еще из вариантов можно использовать утилиту tfswitch.
+Создаем инстанс в файле `main.tf`
+```terraform
+resource "yandex_compute_instance" "netology" {
+  name = "netology"
+
+  resources {
+    cores  = 2
+    memory = 2
+  }
+
+  boot_disk {
+    initialize_params {
+      image_id = "fd80d7fnvf399b1c207j"
+    }
+  }
+
+  network_interface {
+    subnet_id = yandex_vpc_subnet.my-subnet.id
+    nat       = true
+  }
+
+  metadata = {
+    ssh-keys = "ubuntu:${file("~/.ssh/id_rsa.pub")}"
+  }
+}
+
+resource "yandex_vpc_network" "my-network" {
+  name = "my-network"
+}
+
+resource "yandex_vpc_subnet" "my-subnet" {
+  name           = "my-subnet"
+  zone           = var.YC_ZONE
+  network_id     = yandex_vpc_network.my-network.id
+  v4_cidr_blocks = ["192.168.10.0/24"]
+}
+
+output "internal_ip_address_netology_vm" {
+  value = yandex_compute_instance.netology.network_interface.0.ip_address
+}
+
+output "external_ip_address_netology_vm" {
+  value = yandex_compute_instance.netology.network_interface.0.nat_ip_address
+}
+```
+
+Проверяем конфигурацию и выполняем plan:
+```shell
+vagrant@vagrant:/devops-netology/src/terraform$ terraform validate
+Success! The configuration is valid.
+
+vagrant@vagrant:/devops-netology/src/terraform$ terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # yandex_compute_instance.netology will be created
+  + resource "yandex_compute_instance" "netology" {
+      + created_at                = (known after apply)
+      + folder_id                 = (known after apply)
+      + fqdn                      = (known after apply)
+      + hostname                  = (known after apply)
+      + id                        = (known after apply)
+      + metadata                  = {
+          + "ssh-keys" = <<-EOT
+                ubuntu:ssh-rsa ***** vagrant@vagrant
+            EOT
+        }
+      + name                      = "netology"
+      + network_acceleration_type = "standard"
+      + platform_id               = "standard-v1"
+      + service_account_id        = (known after apply)
+      + status                    = (known after apply)
+      + zone                      = (known after apply)
+
+      + boot_disk {
+          + auto_delete = true
+          + device_name = (known after apply)
+          + disk_id     = (known after apply)
+          + mode        = (known after apply)
+
+          + initialize_params {
+              + block_size  = (known after apply)
+              + description = (known after apply)
+              + image_id    = "fd80d7fnvf399b1c207j"
+              + name        = (known after apply)
+              + size        = (known after apply)
+              + snapshot_id = (known after apply)
+              + type        = "network-hdd"
+            }
+        }
+
+      + network_interface {
+          + index              = (known after apply)
+          + ip_address         = (known after apply)
+          + ipv4               = true
+          + ipv6               = (known after apply)
+          + ipv6_address       = (known after apply)
+          + mac_address        = (known after apply)
+          + nat                = true
+          + nat_ip_address     = (known after apply)
+          + nat_ip_version     = (known after apply)
+          + security_group_ids = (known after apply)
+          + subnet_id          = (known after apply)
+        }
+
+      + placement_policy {
+          + host_affinity_rules = (known after apply)
+          + placement_group_id  = (known after apply)
+        }
+
+      + resources {
+          + core_fraction = 100
+          + cores         = 2
+          + memory        = 2
+        }
+
+      + scheduling_policy {
+          + preemptible = (known after apply)
+        }
+    }
+
+  # yandex_vpc_network.my-network will be created
+  + resource "yandex_vpc_network" "my-network" {
+      + created_at                = (known after apply)
+      + default_security_group_id = (known after apply)
+      + folder_id                 = (known after apply)
+      + id                        = (known after apply)
+      + labels                    = (known after apply)
+      + name                      = "my-network"
+      + subnet_ids                = (known after apply)
+    }
+
+  # yandex_vpc_subnet.my-subnet will be created
+  + resource "yandex_vpc_subnet" "my-subnet" {
+      + created_at     = (known after apply)
+      + folder_id      = (known after apply)
+      + id             = (known after apply)
+      + labels         = (known after apply)
+      + name           = "my-subnet"
+      + network_id     = (known after apply)
+      + v4_cidr_blocks = [
+          + "192.168.10.0/24",
+        ]
+      + v6_cidr_blocks = (known after apply)
+      + zone           = "ru-central1-a"
+    }
+
+Plan: 3 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + external_ip_address_netology_vm = (known after apply)
+  + internal_ip_address_netology_vm = (known after apply)
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if you run "terraform apply" now.
+```
+Применяем конфигурацию:
+```shell
+vagrant@vagrant:/devops-netology/src/terraform$ terraform apply
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+...
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+yandex_vpc_network.my-network: Creating...
+yandex_vpc_network.my-network: Creation complete after 2s [id=enpls3rfvffl31fbspj9]
+yandex_vpc_subnet.my-subnet: Creating...
+yandex_vpc_subnet.my-subnet: Creation complete after 1s [id=e9b3eq6bm95q5oq3ea61]
+yandex_compute_instance.netology: Creating...
+yandex_compute_instance.netology: Still creating... [10s elapsed]
+yandex_compute_instance.netology: Still creating... [20s elapsed]
+yandex_compute_instance.netology: Still creating... [30s elapsed]
+yandex_compute_instance.netology: Creation complete after 34s [id=fhmpv7p42pd61dgeb9jt]
+
+Apply complete! Resources: 3 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+external_ip_address_netology_vm = "51.250.81.166"
+internal_ip_address_netology_vm = "192.168.10.33"
+```
+Проверяем подключение по ssh:
+```shell
+vagrant@vagrant:/devops-netology/src/terraform$ ssh ubuntu@51.250.81.166
+Welcome to Ubuntu 20.04.4 LTS (GNU/Linux 5.13.0-39-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+The programs included with the Ubuntu system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+applicable law.
+
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+ubuntu@fhmpv7p42pd61dgeb9jt:~$
+
+``` 
+
+### Ответы на вопросы:
+1. Свои образы можно создавать при помощи Packer
+2. Репозиторий TerraFORM находится ./src/terraform/

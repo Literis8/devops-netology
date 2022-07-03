@@ -642,6 +642,7 @@ test:
 ```
 
 #### Cтруктура директории с Playbook
+Основная для общего использования переменных:
 ```
 group_vars/  
 group_vars/all/  
@@ -655,6 +656,7 @@ roles/<role_fodlers>/
 site.yml  
 requirement.yml  
 ```
+Альтернативная для индивидуальных переменных для каждого хоста:
 ```
 inventory/
 inventory/prod/
