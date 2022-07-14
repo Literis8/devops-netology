@@ -45,7 +45,9 @@ terraform.rc
 
 # Ignore variables
 terraform/variables.tf
+terraform/bucket/variables.tf
 homeworks/homework_7.2_TF_sintax/src/terraform/variables.tf
+terraform/backend.conf
 
 # Ignore terraform lock file
 .terraform.lock.hcl
