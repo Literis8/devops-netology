@@ -1832,6 +1832,7 @@ host    all   all   127.0.0.1/32    md5
 1. [Про создание пользователей](https://postgrespro.ru/docs/postgresql/9.5/sql-createuser)
 2. [Про ограничения, ключи, уникальность и NOT NULL](https://postgrespro.ru/docs/postgresql/9.5/ddl-constraints)
 3. [Подробное описание видов индексов](https://habr.com/ru/post/247373/)
+4. [Тестовые задания для SQL](https://sql-ex.ru/)
 
 ### MySQL
 
