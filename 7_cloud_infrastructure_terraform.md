@@ -1085,8 +1085,8 @@ resource "aws_instance" "web" {
 * триггеры,
 * другие аргументы.
 
-## 7.4 Введение в Golang
-### 7.4.1. Основы golang
+## 7.5 Введение в Golang
+### 7.5.1. Основы golang
 #### Особенности golang
 * **Простой и понятный синтаксис.** Это делает написание кода приятным занятием.
 * **Статическая типизация.** Позволяет избежать ошибок, допущенных по невнимательности, упрощает чтение и понимание кода,
@@ -1126,7 +1126,7 @@ func main() {
 ```
 Запустим его: `go run test.go`
 
-### 7.4.2. Синтаксис
+### 7.5.2. Синтаксис
 #### Пакеты
 Каждая программа на языке Go состоит из пакетов (**packages**).
 Пакет **main** — главный, с него начинается выполнение программы.
@@ -1379,7 +1379,7 @@ func main() {
     fmt.Println(tom.name, tom.age)      // Tom 38
 ```
 
-### 7.4.3. Компиляция
+### 7.5.3. Компиляция
 #### go build
 Использование команды:
 ```shell
@@ -1403,7 +1403,7 @@ $ gox -h
 ...
 ```
 
-### 7.4.4. Тестирование
+### 7.5.4. Тестирование
 #### Создадим функцию
 Файл math.go
 ```go
@@ -1448,3 +1448,383 @@ ok github.com/netology/devops 0.981s
 * [IDE GoLand от JetBrains](https://www.jetbrains.com/ru-ru/go/)
 * [Официальный сайт go](https://go.dev/)
 * [Песочница go](https://go.dev/play/)
+
+## 7.6 Написание собственных провайдеров для Terraform
+### 7.6.1. Работа с собственным провайдером
+#### Схема http провайдера
+Давайте научим терраформ варить кофе при помощи собственного провайдера:
+![Terraform](img/7_iac/iac_6_1_1.PNG)
+
+#### Подготовка среды
+Установим кофемашину hashicups:
+```shell
+$ git clone https://github.com/hashicorp/learn-terraform-hashicups-provider
+$ cd learn-terraform-hashicups-provider
+```
+
+Запустим кофемашину:
+```shell
+$ cd docker_compose
+$ docker-compose up
+```
+
+Проверим ее:
+```shell
+$ curl localhost:19090/health
+ok
+```
+
+#### Установка провайдера для Linux
+Скачиваем провайдер:
+```shell
+$ curl -Lo terraform-provider-hashicups_0.3.1_linux_amd64.zip \
+https://github.com/hashicorp/terraform-provider-hashicups/releases/download/v0.3.1/terraform-provider-hashicups_0.3.1_linux_amd64.zip
+$ unzip terraform-provider-hashicups_0.3.1_linux_amd64.zip
+$ mv terraform-provider-hashicups_v0.3.1 terraform-provider-hashicups
+$ chmod +x terraform-provider-hashicups
+```
+
+Создаем каталог и копируем провайдер:
+```shell
+$ mkdir -p ~/.terraform.d/plugins/hashicorp.com/edu/hashicups/0.3.1/linux_amd64
+$ mv terraform-provider-hashicups ~/.terraform.d/plugins/hashicorp.com/edu/hashicups/0.2/linux_amd64
+```
+
+#### Установка провайдера для Mac
+Скачиваем провайдер:
+```shell
+$ curl -Lo terraform-provider-hashicups \ 
+https://github.com/hashicorp/terraform-provider-hashicups/releases/download/v0.2/terraform-provider-hashicups_0.2_darwin_amd64
+```
+
+Делаем его исполняемым:
+```shell
+$ chmod +x terraform-provider-hashicups
+```
+
+Создаем каталог и копируем провайдер:
+```shell
+$ mkdir -p ~/.terraform.d/plugins/hashicorp.com/edu/hashicups/0.2/darwin_amd64
+$ mv terraform-provider-hashicups ~/.terraform.d/plugins/hashicorp.com/edu/hashicups/0.2/darwin_amd64
+```
+
+#### Установка провайдера для Windows
+Скачиваем провайдер:
+```shell
+$ curl -Lo terraform-provider-hashicups https://github.com/hashicorp/terraform-provider-hashicups/releases/download/v0.2/terraform-provider-hashicups_0.2_windows_amd64
+```
+
+Делаем его исполняемым:
+```shell
+$ icacls "./terraform-provider-hashicups" /grant USER:RX
+```
+
+Создаем каталог и копируем провайдер:
+```shell
+$ mkdir -p %APPDATA%\terraform.d\plugins\hashicorp.com\edu\hashicups\0.2\windows_amd64
+$ move terraform-provider-hashicups.exe %APPDATA%\terraform.d\plugins\hashicorp.com\edu\hashicups\0.2\windows_amd64
+```
+
+#### Создаем нового HashiCups пользователя 
+Создаем пользователя **education** с паролем **test123**:
+```shell
+$ curl -X POST localhost:19090/signup -d '{"username":"education", "password":"test123"}' \
+{"UserID":1,"Username":"education","token":"..."}
+```
+
+Проходим аутентификацию:
+```shell
+$ curl -X POST localhost:19090/signin -d '{"username":"education", "password":"test123"}' \
+{"UserID":1,"Username":"education","token":"..."}
+```
+
+Сохраняем полученный токен:
+```shell
+$ export HASHICUPS_TOKEN=...
+```
+
+#### Варим кофе
+```terraform
+terraform {
+  versions = ["0.2"]
+  required_providers {
+    hashicups = {
+        source =  "hashicorp.com/edu/hashicups"
+    } 
+  }
+}
+
+provider "hashicups" {
+  username = "education"
+  password = "test123"
+}
+
+resource "hashicups_order" "edu" {
+  items {
+    coffee {id = 3}
+    quantity = 2
+  }
+  items {
+    coffee {id = 2}
+    quantity = 2
+  }
+}
+
+output "edu_order" {
+  value = hashicups_order.edu
+}
+```
+
+#### Процесс варки кофе
+Логи докера:
+```shell
+api_1 | 2020-11-18T03:15:58.123Z [INFO] Handle User | signin
+api_1 | 2020-11-18T03:16:02.056Z [INFO] Handle User | signin
+api_1 | 2020-11-18T03:16:02.067Z [INFO] Handle Orders | CreateOrder
+api_1 | 2020-11-18T03:16:02.083Z [INFO] Handle Orders | GetUserOrder
+```
+
+Создаем, изменяем, проверяем стейты:
+```shell
+$ terraform plan
+$ terraform apply
+$ terraform state show hashicups_order.edu
+$ curl -X GET -H "Authorization: ${HASHICUPS_TOKEN}" localhost:19090/orders/1
+```
+
+### 7.6.2. Устройство провайдера
+#### Подготовка среды
+Клонируем исходники:
+```shell
+$ cd ~/go/src/github.com/hashicorp/
+$ git clone --branch boilerplate https://github.com/hashicorp/terraform-provider-hashicups
+```
+
+Запустим тестовую кофемашину:
+```shell
+$ cd docker_compose
+$ docker-compose up
+```
+
+Проверим ее:
+```shell
+$ curl localhost:19090/health
+ok
+```
+
+#### Makefile
+Makefile содержит вспомогательные функции, используемые для сборки, упаковки и установки провайдера.  
+Весь список **GOARCH** и **GOOS**: <https://golang.org/doc/install/source#environment>  
+Например для windows:
+```
+- BINARY=terraform-provider-${NAME}
++ BINARY=terraform-provider-${NAME}.exe
+- OS_ARCH=darwin_amd64
++ OS_ARCH=windows/amd64
+```
+
+#### hashicups/provider.go
+Сейчас здесь определен пустой провайдер.
+
+В самом простом случае здесь можно задать доступные:
+* ресурсы (блок resources),
+* источники данных (блок data).
+
+#### Билдим провайдер
+Запустите команду **go mod init**, чтобы указать что этот каталог является корнем модуля:
+```shell
+$ go mod init terraform-provider-hashicups
+go: creating new go.mod: module terraform-provider-hashicups
+```
+
+Затем запустите **go mod vendor**, чтобы выкачать зависимости:
+```shell
+$ go mod vendor
+```
+
+Билдим провайдер:
+```shell
+$ make build
+go build -o terraform-provider-hashicups
+```
+
+### 7.6.3. Чтение ресурсов
+#### Определим структуру кофе
+Узнаем структуру:
+```shell
+$ curl localhost:19090/coffees | jq
+[
+ {
+ "id": 1,
+ "name": "Packer Spiced Latte",
+ "teaser": "Packed with goodness to spice up your images",
+ "description": "",
+ "price": 350,
+ "image": "/packer.png",
+ "ingredients": [{"ingredient_id": 1}, ... ]
+ }, ...
+]
+```
+
+#### Создаем data_source_coffee.go 
+```go
+package hashicups
+import (...)
+func dataSourceCoffees() *schema.Resource {
+  return &schema.Resource{
+    ReadContext: dataSourceCoffeesRead,
+    Schema: map[string]*schema.Schema{ /* ... */},
+  }
+}
+
+func dataSourceCoffeesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+ /* ... */
+}
+```
+
+#### Декларируем структуру и функцию чтения
+```go
+Schema: map[string]*schema.Schema{
+  "coffees": &schema.Schema{
+     Type: schema.TypeList,
+     Computed: true,
+     Elem: &schema.Resource{
+       Schema: map[string]*schema.Schema{
+         "id": &schema.Schema{
+           Type: schema.TypeInt,
+           Computed: true,
+         },
+...
+```
+```go
+func dataSourceCoffeesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics { ...
+```
+
+### 7.6.4. Авторизация
+#### provider.go: добавляем переменные
+```go
+func Provider() *schema.Provider {
+  return &schema.Provider{
+    Schema: map[string]*schema.Schema{
+      "username": &schema.Schema{
+        Type: schema.TypeString,
+        Optional: true,
+        DefaultFunc: schema.EnvDefaultFunc("HASHICUPS_USERNAME", nil),
+      },
+      "password": &schema.Schema{
+        Type: schema.TypeString,
+        Optional: true,
+        Sensitive: true,
+        DefaultFunc: schema.EnvDefaultFunc("HASHICUPS_PASSWORD", nil),
+      },
+    },
+    ResourcesMap: map[string]*schema.Resource{},
+    DataSourcesMap: map[string]*schema.Resource{
+      "hashicups_coffees": dataSourceCoffees(),
+    },
+  }
+}
+```
+
+#### Определение схемы
+Обращаем внимание на:
+* список переменных при определении провайдера,
+* тип этих переменных,
+* при помощи каких переменных окружений их можно задать,
+* значение по-умолчанию.
+
+#### provider.go: определяем конфигурации
+```go
+func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+  username := d.Get("username").(string)
+  password := d.Get("password").(string)
+  ...
+  return c, diags
+}
+```
+
+### 7.6.5. Создание ресурса
+#### Создадим заказ на кофе
+Шаги:
+* зарегистрировать ресурс для работы с order,
+* определить схему данных для order,
+* реализовать функцию создания order,
+* реализовать функцию чтения order.
+
+#### resource_order.go
+```go
+func resourceOrder() *schema.Resource {
+  return &schema.Resource{
+    CreateContext: resourceOrderCreate,
+    ReadContext: resourceOrderRead,
+    UpdateContext: resourceOrderUpdate,
+    DeleteContext: resourceOrderDelete,
+    Schema: map[string]*schema.Schema{},
+  }
+}
+```
+
+#### Декларируем схему
+Протестировать создание заказа можно так:
+```shell
+$ curl -X POST -H "Authorization: ${HASHICUPS_TOKEN}" localhost:19090/orders -d \
+'[{"coffee": { "id":1 }, "quantity":4}, {"coffee": { "id":3}, "quantity":3}]'
+```
+
+И потом заменить `Schema: map[string]*schema.Schema{}`, на настоящую схему. 
+
+#### Создаем функцию создания ресурса
+```go
+func resourceOrderCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+ // ...
+}
+```
+
+#### Реализуем функцию чтения ресурса
+```go
+func resourceOrderRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+ // ...
+}
+```
+
+#### Добавляем order ресурс в провайдер
+```go
+func Provider() *schema.Provider {
+  return &schema.Provider{
+    Schema: map[string]*schema.Schema{ /* ... */},
+    ResourcesMap: map[string]*schema.Resource{
+      "hashicups_order": resourceOrder(),
+    },
+    DataSourcesMap: map[string]*schema.Resource{
+      "hashicups_coffees": dataSourceCoffees(),
+    },
+  }
+}
+```
+
+### 7.6.6. Обновление ресурса
+#### Обновляем заказ на кофе
+Шаги:
+* реализуем функцию **resourceOrderUpdate()** в **resource_order.go**
+
+#### Функция resourceOrderUpdate()
+```go
+func resourceOrderUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+  // ...
+  return resourceOrderRead(ctx, d, m)
+}
+```
+
+### 7.6.7. Удаление ресурса
+#### Удаляем заказ на кофе
+Шаги:
+* реализуем функцию **resourceOrderDelete()** в **resource_order.go**
+
+#### Функция resourceOrderDelete()
+```go
+func resourceOrderDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+  // ...
+  var diags diag.Diagnostics
+  return diags
+}
+```
