@@ -102,21 +102,26 @@ Vagrant.configure("2") do |config|
   #  echo '======= docker-compose installation complete ======='
 
   ### Установка Yandex.Cloud
-    echo '======= installing yc ======='
-    curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
-    echo '======= yc installation complete ======='
+  #  echo '======= installing yc ======='
+  #  curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+  #  echo '======= yc installation complete ======='
 
   ### Установка Terraform
-    echo '======= installing Terraform ======='
-    curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
-    sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-    sudo apt-get update && sudo apt-get install terraform
-    terraform version
-    echo '======= Terraform installation complete ======='
+  #  echo '======= installing Terraform ======='
+  #  curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+  #  sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+  #  sudo apt-get update && sudo apt-get install terraform
+  #  terraform version
+  #  echo '======= Terraform installation complete ======='
 
   ### Установка Ansible
   #  apt-get install -y ansible
   #  cp /devops-netology/homeworks/homework_5.5/src/terraform/ansible.cfg /etc/ansible/ansible.cfg
-
+  
+  ### Установка Golang
+    echo '======= installing GoLang ======='
+    apt-get install -y golang
+    go version
+    echo '======= GoLang installation complete ======='
   SHELL
 end
