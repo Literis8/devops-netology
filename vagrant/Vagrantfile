@@ -85,21 +85,21 @@ Vagrant.configure("2") do |config|
     apt-get update
 
   ### Установка docker
-  #  echo '======= installing docker ======='
-  #  apt-get install linux-image-extra-$(uname -r) linux-image-extra-virtual
-  #  apt-get install apt-transport-https ca-certificates curl software-properties-common
-  #  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-  #  add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
-  #  apt-get update && apt-cache policy docker-ce
-  #  sudo apt-get install -y docker-ce
-  #  usermod -aG docker vagrant
-  #  echo '======= docker installation complete ======='
+    echo '======= installing docker ======='
+    apt-get install linux-image-extra-$(uname -r) linux-image-extra-virtual
+    apt-get install apt-transport-https ca-certificates curl software-properties-common
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
+    apt-get update && apt-cache policy docker-ce
+    sudo apt-get install -y docker-ce
+    usermod -aG docker vagrant
+    echo '======= docker installation complete ======='
 
   ### Установка docker-compose
-  #  echo '======= installing docker-compose ======='
-  #  curl -SL https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
-  #  chmod +x /usr/local/bin/docker-compose
-  #  echo '======= docker-compose installation complete ======='
+    echo '======= installing docker-compose ======='
+    curl -SL https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
+    echo '======= docker-compose installation complete ======='
 
   ### Установка Yandex.Cloud
   #  echo '======= installing yc ======='
@@ -115,13 +115,15 @@ Vagrant.configure("2") do |config|
   #  echo '======= Terraform installation complete ======='
 
   ### Установка Ansible
-  #  apt-get install -y ansible
-  #  cp /devops-netology/homeworks/homework_5.5/src/terraform/ansible.cfg /etc/ansible/ansible.cfg
-  
+    echo '======= installing Ansible ======='
+    apt-get install -y ansible
+    ansible --version
+    echo '======= Ansible installation complete ======='
+
   ### Установка Golang
-    echo '======= installing GoLang ======='
-    apt-get install -y golang
-    go version
-    echo '======= GoLang installation complete ======='
+  #  echo '======= installing GoLang ======='
+  #  apt-get install -y golang
+  #  go version
+  #  echo '======= GoLang installation complete ======='
   SHELL
 end
