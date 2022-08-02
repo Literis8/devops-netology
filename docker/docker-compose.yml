@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  elasticsearch:
+    image: debian:latest
+    container_name: elastic
+    restart: always
+    command: "sleep 6000000"
+
+  java:
+    image: debian:latest
+    container_name: java
+    volumes:
+      - ./alertmanager:/etc/alertmanager
+    command: "sleep 6000000"
+    restart: always

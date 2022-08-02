@@ -310,7 +310,7 @@ requirement.yml
       - name: Get RPM # Произвольное имя для второй task
         ansible.builtin.get_url: # Объявление использования module get_url, ниже указание его параметров
           url: "https://package.timber.io/vector/{{ vector_version }}/vector.rpm"
-          dest: “{{ ansible_user_dir }}/vector.rpm”
+          dest: "{{ ansible_user_dir }}/vector.rpm"
           mode: 0755
         when: # Условия при которых task будет выполняться
           - is_installed is failed
@@ -368,7 +368,7 @@ tasks: # Объявление списка tasks
   - name: Take out of balance # Произвольное имя для task
     local_action:
       ansible.builtin.command:
-      cmd: "/usr/bin/pool/take_out {{ inventory_hostname }}" # Что и как необходимо сделать
+        cmd: "/usr/bin/pool/take_out {{ inventory_hostname }}" # Что и как необходимо сделать
   - name: Install Latest NGINX # Произвольное имя для второй task
     ansible.builtin.yum:
       name: nginx
@@ -416,7 +416,7 @@ handlers: # Объявление списка handlers
     ansible.builtin.service:
       name: memcached
       state: restarted
-    listen: “restart monitoring”
+    listen: "restart monitoring"
 ```
 
 ### 8.2.5. Role
@@ -451,7 +451,9 @@ tasks: # Объявление списка tasks
     ansible.builtin.get_url: # Объявление использования module get_url, ниже указание его параметров
       url: "https://package.timber.io/vector/{{ vector_version }}/vector.rpm"
     when: # Условия при которых task будет выполняться
-      - install failed
+      - is_installed is failed
+    tags:
+      - install 
 ```
 
 Существует два выделенных **tags**:

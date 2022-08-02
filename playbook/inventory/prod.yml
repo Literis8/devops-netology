@@ -1,13 +1,9 @@
 ---
-  el:
-    hosts:
-      centos7:
-        ansible_connection: docker
-  deb:
-    hosts:
-      ubuntu:
-        ansible_connection: docker
-  local:
-    hosts:
-      localhost:
-        ansible_connection: local
+elasticsearch:
+  hosts:
+    elastic:
+      ansible_connection: docker
+java:
+  hosts:
+    java:
+      ansible_connection: docker
