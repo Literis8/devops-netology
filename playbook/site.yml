@@ -14,13 +14,11 @@
       until: download_java_binaries is succeeded
       tags: java
     - name: Ensure installation dir exists
-      become: true
       file:
         state: directory
         path: "{{ java_home }}"
       tags: java
     - name: Extract java in the installation directory
-      become: true
       unarchive:
         copy: false
         src: "/tmp/jdk-{{ java_jdk_version }}.tar.gz"
@@ -29,8 +27,8 @@
         creates: "{{ java_home }}/bin/java"
       tags:
         - java
+      ignore_errors: "{{ ansible_check_mode }}"
     - name: Export environment variables
-      become: true
       template:
         src: jdk.sh.j2
         dest: /etc/profile.d/jdk.sh
@@ -55,7 +53,6 @@
         path: "{{ elastic_home }}"
       tags: elastic
     - name: Extract Elasticsearch in the installation directory
-      become: true
       unarchive:
         copy: false
         src: "/tmp/elasticsearch-{{ elastic_version }}-linux-x86_64.tar.gz"
@@ -65,14 +62,29 @@
       tags:
         - elastic
     - name: Set environment Elastic
-      become: true
       template:
         src: templates/elk.sh.j2
         dest: /etc/profile.d/elk.sh
       tags: elastic
-# - name: Install Kibana
-#  hosts: java
-#  tasks:
-#    - name: Download Kibana
-#    - name: Extract Kibana in selected directory
-#    - name: Generate configuration whith parameters
+- name: Install Kibana
+  hosts: kibana
+  tasks:
+    - name: Download Kibana
+      get_url:
+        url: "https://artifacts.elastic.co/downloads/kibana/kibana-{{ kibana_version }}-linux-x86_64.tar.gz"
+        dest: "/tmp/kibana-{{ kibana_version }}-linux-x86_64.tar.gz"
+        mode: 0755
+        timeout: 60
+    - name: Create directory for Kibana
+      file:
+        state: directory
+        path: "{{ kibana_home }}"
+    - name: Extract Kibana in selected directory
+      unarchive:
+        copy: false
+        src: "/tmp/kibana-{{ kibana_version }}-linux-x86_64.tar.gz"
+        dest: "{{ kibana_home }}"
+    - name: Generate configuration whith parameters
+      template:
+        src: templates/kib.sh.j2
+        dest: /etc/profile.d/kib.sh

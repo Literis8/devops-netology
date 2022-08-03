@@ -2,15 +2,18 @@ version: '3.8'
 
 services:
   elasticsearch:
-    image: debian:latest
+    build:
+      dockerfile: Dockerfile
+    image: ubuntu-python
     container_name: elastic
     restart: always
     command: "sleep 6000000"
 
-  java:
-    image: debian:latest
-    container_name: java
-    volumes:
-      - ./alertmanager:/etc/alertmanager
-    command: "sleep 6000000"
+  kibana:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ubuntu-python
+    container_name: kibana
     restart: always
+    command: "sleep 6000000"

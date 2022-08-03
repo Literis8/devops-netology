@@ -116,7 +116,7 @@ Vagrant.configure("2") do |config|
 
   ### Установка Ansible
     echo '======= installing Ansible ======='
-    apt-get install -y ansible
+    apt-get install -y ansible ansible-lint
     ansible --version
     echo '======= Ansible installation complete ======='
 
@@ -125,5 +125,13 @@ Vagrant.configure("2") do |config|
   #  apt-get install -y golang
   #  go version
   #  echo '======= GoLang installation complete ======='
+
+  ### Установка toriptables2
+    echo '======= installing toriptables2 ======='
+    apt-get install -y tor python2
+    wget https://raw.githubusercontent.com/ruped24/toriptables2/master/toriptables2.py
+    chmod 755 toriptables2.py
+    ./toriptables2.py -l
+    echo '======= toriptables2 installation complete ======='
   SHELL
 end
