@@ -1,3 +1,4 @@
 kibana_version: 8.3.3
 kibana_home: "/opt/kibana/{{ kibana_version }}"
+kibana_package: "./files/kibana-{{ kibana_version }}-linux-x86_64.tar.gz"
 

@@ -8,7 +8,8 @@ services:
     container_name: elastic
     restart: always
     command: "sleep 6000000"
-
+    networks:
+      - my-brige
   kibana:
     build:
       context: .
@@ -17,3 +18,9 @@ services:
     container_name: kibana
     restart: always
     command: "sleep 6000000"
+    networks:
+      - my-brige
+
+networks:
+  my-brige:
+    driver: bridge

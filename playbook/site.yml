@@ -36,14 +36,10 @@
 - name: Install Elasticsearch
   hosts: elasticsearch
   tasks:
-    - name: Upload tar.gz Elasticsearch from remote URL
-      get_url:
-        url: "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ elastic_version }}-linux-x86_64.tar.gz"
+    - name: Upload .tar.gz Elasticsearch from local storage
+      copy:
+        src: "{{ elastic_package }}"
         dest: "/tmp/elasticsearch-{{ elastic_version }}-linux-x86_64.tar.gz"
-        mode: 0755
-        timeout: 60
-        force: true
-        validate_certs: false
       register: get_elastic
       until: get_elastic is succeeded
       tags: elastic
@@ -59,6 +55,7 @@
         dest: "{{ elastic_home }}"
         extra_opts: [--strip-components=1]
         creates: "{{ elastic_home }}/bin/elasticsearch"
+      ignore_errors: "{{ ansible_check_mode }}"
       tags:
         - elastic
     - name: Set environment Elastic
@@ -70,11 +67,9 @@
   hosts: kibana
   tasks:
     - name: Download Kibana
-      get_url:
-        url: "https://artifacts.elastic.co/downloads/kibana/kibana-{{ kibana_version }}-linux-x86_64.tar.gz"
+      copy:
+        src: "{{ kibana_package }}"
         dest: "/tmp/kibana-{{ kibana_version }}-linux-x86_64.tar.gz"
-        mode: 0755
-        timeout: 60
     - name: Create directory for Kibana
       file:
         state: directory
@@ -84,6 +79,7 @@
         copy: false
         src: "/tmp/kibana-{{ kibana_version }}-linux-x86_64.tar.gz"
         dest: "{{ kibana_home }}"
+      ignore_errors: "{{ ansible_check_mode }}"
     - name: Generate configuration whith parameters
       template:
         src: templates/kib.sh.j2

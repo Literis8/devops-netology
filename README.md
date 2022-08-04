@@ -110,3 +110,429 @@ vagrant@vagrant:/devops-netology/playbook$
     * по скольку мы используем докер контейнеры от рута, убираем из playbook `become: true`
     * добавим игнорирование ошибки в чекмоде `ignore_errors: "{{ ansible_check_mode }}"` в задачу "Extract java in the 
 installation directory" так как иначе чек остановится на ней. 
+    * при попытке доступа даже под впн к еластику получил 403 ошибку, в связи с этим переделываю плейбук для работы с
+локальными дистрибутивами:
+```yamlex
+- name: Install Elasticsearch
+  hosts: elasticsearch
+  tasks:
+    - name: Upload .tar.gz Elasticsearch from local storage # Меняем имя
+      copy:                                                 # настраиваем локальную копию
+        src: "{{ elastic_package }}"
+        dest: "/tmp/elasticsearch-{{ elastic_version }}-linux-x86_64.tar.gz"
+      register: get_elastic
+      until: get_elastic is succeeded
+      tags: elastic
+```
+   * добавим игнорирование ошибки в чекмоде `ignore_errors: "{{ ansible_check_mode }}"` в задачу "Extract Elasticsearch 
+in the installation directory" так как иначе чек остановится на ней. 
+   * Аналогично эластику, меняем способ получения дистрибутива кибана на локальный:
+```yamlex
+- name: Install Kibana
+  hosts: kibana
+  tasks:
+    - name: Download Kibana
+      copy:
+        src: "{{ kibana_package }}"
+        dest: "/tmp/kibana-{{ kibana_version }}-linux-x86_64.tar.gz"
+```
+   * добавим игнорирование ошибки в чекмоде `ignore_errors: "{{ ansible_check_mode }}"` в задачу "Extract Kibana 
+in selected directory" так как иначе чек остановится на ней.
+   
+Конечный вывод:
+```shell
+vagrant@vagrant:/devops-netology/playbook$ ansible-playbook -i inventory/prod.yml site.yml --check
+[WARNING]: Found both group and host with same name: kibana
+
+PLAY [Install Java] ***********************************************************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ********************************************************************************************************************************************************************************************************************
+[WARNING]: Platform linux on host kibana is using the discovered Python interpreter at /usr/bin/python, but future installation of another Python interpreter could change this. See
+https://docs.ansible.com/ansible/2.9/reference_appendices/interpreter_discovery.html for more information.
+ok: [kibana]
+[WARNING]: Platform linux on host elastic is using the discovered Python interpreter at /usr/bin/python, but future installation of another Python interpreter could change this. See
+https://docs.ansible.com/ansible/2.9/reference_appendices/interpreter_discovery.html for more information.
+ok: [elastic]
+
+TASK [Set facts for Java 11 vars] *********************************************************************************************************************************************************************************************************
+ok: [elastic]
+ok: [kibana]
+
+TASK [Upload .tar.gz file containing binaries from local storage] *************************************************************************************************************************************************************************
+changed: [kibana]
+changed: [elastic]
+
+TASK [Ensure installation dir exists] *****************************************************************************************************************************************************************************************************
+changed: [elastic]
+changed: [kibana]
+
+TASK [Extract java in the installation directory] *****************************************************************************************************************************************************************************************
+fatal: [elastic]: FAILED! => {"changed": false, "msg": "dest '/opt/jdk/11.0.16' must be an existing dir"}
+...ignoring
+fatal: [kibana]: FAILED! => {"changed": false, "msg": "dest '/opt/jdk/11.0.16' must be an existing dir"}
+...ignoring
+
+TASK [Export environment variables] *******************************************************************************************************************************************************************************************************
+changed: [elastic]
+changed: [kibana]
+
+PLAY [Install Elasticsearch] **************************************************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ********************************************************************************************************************************************************************************************************************
+ok: [elastic]
+
+TASK [Upload .tar.gz Elasticsearch from local storage] ************************************************************************************************************************************************************************************
+changed: [elastic]
+
+TASK [Create directrory for Elasticsearch] ************************************************************************************************************************************************************************************************
+changed: [elastic]
+
+TASK [Extract Elasticsearch in the installation directory] ********************************************************************************************************************************************************************************
+fatal: [elastic]: FAILED! => {"changed": false, "msg": "dest '/opt/elastic/7.10.1' must be an existing dir"}
+...ignoring
+
+TASK [Set environment Elastic] ************************************************************************************************************************************************************************************************************
+changed: [elastic]
+
+PLAY [Install Kibana] *********************************************************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ********************************************************************************************************************************************************************************************************************
+ok: [kibana]
+
+TASK [Download Kibana] ********************************************************************************************************************************************************************************************************************
+changed: [kibana]
+
+TASK [Create directory for Kibana] ********************************************************************************************************************************************************************************************************
+changed: [kibana]
+
+TASK [Extract Kibana in selected directory] ***********************************************************************************************************************************************************************************************
+fatal: [kibana]: FAILED! => {"changed": false, "msg": "dest '/opt/kibana/8.3.3' must be an existing dir"}
+...ignoring
+
+TASK [Generate configuration whith parameters] ********************************************************************************************************************************************************************************************
+changed: [kibana]
+
+PLAY RECAP ********************************************************************************************************************************************************************************************************************************
+elastic                    : ok=11   changed=6    unreachable=0    failed=0    skipped=0    rescued=0    ignored=2   
+kibana                     : ok=11   changed=6    unreachable=0    failed=0    skipped=0    rescued=0    ignored=2   
+```
+
+7. запускаем playbook с флагом `--diff`:
+```shell
+vagrant@vagrant:/devops-netology/playbook$ ansible-playbook -i inventory/prod.yml site.yml --diff
+[WARNING]: Found both group and host with same name: kibana
+
+PLAY [Install Java] ***********************************************************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ********************************************************************************************************************************************************************************************************************
+[WARNING]: Platform linux on host kibana is using the discovered Python interpreter at /usr/bin/python, but future installation of another Python interpreter could change this. See
+https://docs.ansible.com/ansible/2.9/reference_appendices/interpreter_discovery.html for more information.
+ok: [kibana]
+[WARNING]: Platform linux on host elastic is using the discovered Python interpreter at /usr/bin/python, but future installation of another Python interpreter could change this. See
+https://docs.ansible.com/ansible/2.9/reference_appendices/interpreter_discovery.html for more information.
+ok: [elastic]
+
+TASK [Set facts for Java 11 vars] *********************************************************************************************************************************************************************************************************
+ok: [elastic]
+ok: [kibana]
+
+TASK [Upload .tar.gz file containing binaries from local storage] *************************************************************************************************************************************************************************
+diff skipped: source file size is greater than 104448
+changed: [kibana]
+diff skipped: source file size is greater than 104448
+changed: [elastic]
+
+TASK [Ensure installation dir exists] *****************************************************************************************************************************************************************************************************
+--- before
++++ after
+@@ -1,4 +1,4 @@
+ {
+     "path": "/opt/jdk/11.0.16",
+-    "state": "absent"
++    "state": "directory"
+ }
+
+changed: [kibana]
+--- before
++++ after
+@@ -1,4 +1,4 @@
+ {
+     "path": "/opt/jdk/11.0.16",
+-    "state": "absent"
++    "state": "directory"
+ }
+
+changed: [elastic]
+
+TASK [Extract java in the installation directory] *****************************************************************************************************************************************************************************************
+changed: [elastic]
+changed: [kibana]
+
+TASK [Export environment variables] *******************************************************************************************************************************************************************************************************
+--- before
++++ after: /home/vagrant/.ansible/tmp/ansible-local-296651leu7wb4/tmpf3rxkbjh/jdk.sh.j2
+@@ -0,0 +1,5 @@
++# Warning: This file is Ansible Managed, manual changes will be overwritten on next playbook run.
++#!/usr/bin/env bash
++
++export JAVA_HOME=/opt/jdk/11.0.16
++export PATH=$PATH:$JAVA_HOME/bin
+\ No newline at end of file
+
+changed: [kibana]
+--- before
++++ after: /home/vagrant/.ansible/tmp/ansible-local-296651leu7wb4/tmpwwm090pz/jdk.sh.j2
+@@ -0,0 +1,5 @@
++# Warning: This file is Ansible Managed, manual changes will be overwritten on next playbook run.
++#!/usr/bin/env bash
++
++export JAVA_HOME=/opt/jdk/11.0.16
++export PATH=$PATH:$JAVA_HOME/bin
+\ No newline at end of file
+
+changed: [elastic]
+
+PLAY [Install Elasticsearch] **************************************************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ********************************************************************************************************************************************************************************************************************
+ok: [elastic]
+
+TASK [Upload .tar.gz Elasticsearch from local storage] ************************************************************************************************************************************************************************************
+diff skipped: source file size is greater than 104448
+changed: [elastic]
+
+TASK [Create directrory for Elasticsearch] ************************************************************************************************************************************************************************************************
+--- before
++++ after
+@@ -1,4 +1,4 @@
+ {
+     "path": "/opt/elastic/7.10.1",
+-    "state": "absent"
++    "state": "directory"
+ }
+
+changed: [elastic]
+
+TASK [Extract Elasticsearch in the installation directory] ********************************************************************************************************************************************************************************
+changed: [elastic]
+
+TASK [Set environment Elastic] ************************************************************************************************************************************************************************************************************
+--- before
++++ after: /home/vagrant/.ansible/tmp/ansible-local-296651leu7wb4/tmppoq2by5y/elk.sh.j2
+@@ -0,0 +1,5 @@
++# Warning: This file is Ansible Managed, manual changes will be overwritten on next playbook run.
++#!/usr/bin/env bash
++
++export ES_HOME=/opt/elastic/7.10.1
++export PATH=$PATH:$ES_HOME/bin
+\ No newline at end of file
+
+changed: [elastic]
+
+PLAY [Install Kibana] *********************************************************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ********************************************************************************************************************************************************************************************************************
+ok: [kibana]
+
+TASK [Download Kibana] ********************************************************************************************************************************************************************************************************************
+diff skipped: source file size is greater than 104448
+changed: [kibana]
+
+TASK [Create directory for Kibana] ********************************************************************************************************************************************************************************************************
+--- before
++++ after
+@@ -1,4 +1,4 @@
+ {
+     "path": "/opt/kibana/8.3.3",
+-    "state": "absent"
++    "state": "directory"
+ }
+
+changed: [kibana]
+
+TASK [Extract Kibana in selected directory] ***********************************************************************************************************************************************************************************************
+changed: [kibana]
+
+TASK [Generate configuration whith parameters] ********************************************************************************************************************************************************************************************
+--- before
++++ after: /home/vagrant/.ansible/tmp/ansible-local-296651leu7wb4/tmpnh2tpuat/kib.sh.j2
+@@ -0,0 +1,5 @@
++# Warning: This file is Ansible Managed, manual changes will be overwritten on next playbook run.
++#!/usr/bin/env bash
++
++export KIBANA_HOME=/opt/kibana/8.3.3
++export PATH=$PATH:$KIBANA_HOME/bin
+\ No newline at end of file
+
+changed: [kibana]
+
+PLAY RECAP ********************************************************************************************************************************************************************************************************************************
+elastic                    : ok=11   changed=8    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+kibana                     : ok=11   changed=8    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+8. Запускаем повторно:
+```shell
+vagrant@vagrant:/devops-netology/playbook$ ansible-playbook -i inventory/prod.yml site.yml --diff
+[WARNING]: Found both group and host with same name: kibana
+
+PLAY [Install Java] ***********************************************************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ********************************************************************************************************************************************************************************************************************
+[WARNING]: Platform linux on host kibana is using the discovered Python interpreter at /usr/bin/python, but future installation of another Python interpreter could change this. See
+https://docs.ansible.com/ansible/2.9/reference_appendices/interpreter_discovery.html for more information.
+ok: [kibana]
+[WARNING]: Platform linux on host elastic is using the discovered Python interpreter at /usr/bin/python, but future installation of another Python interpreter could change this. See
+https://docs.ansible.com/ansible/2.9/reference_appendices/interpreter_discovery.html for more information.
+ok: [elastic]
+
+TASK [Set facts for Java 11 vars] *********************************************************************************************************************************************************************************************************
+ok: [elastic]
+ok: [kibana]
+
+TASK [Upload .tar.gz file containing binaries from local storage] *************************************************************************************************************************************************************************
+ok: [elastic]
+ok: [kibana]
+
+TASK [Ensure installation dir exists] *****************************************************************************************************************************************************************************************************
+ok: [elastic]
+ok: [kibana]
+
+TASK [Extract java in the installation directory] *****************************************************************************************************************************************************************************************
+skipping: [elastic]
+skipping: [kibana]
+
+TASK [Export environment variables] *******************************************************************************************************************************************************************************************************
+ok: [kibana]
+ok: [elastic]
+
+PLAY [Install Elasticsearch] **************************************************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ********************************************************************************************************************************************************************************************************************
+ok: [elastic]
+
+TASK [Upload .tar.gz Elasticsearch from local storage] ************************************************************************************************************************************************************************************
+ok: [elastic]
+
+TASK [Create directrory for Elasticsearch] ************************************************************************************************************************************************************************************************
+ok: [elastic]
+
+TASK [Extract Elasticsearch in the installation directory] ********************************************************************************************************************************************************************************
+skipping: [elastic]
+
+TASK [Set environment Elastic] ************************************************************************************************************************************************************************************************************
+ok: [elastic]
+
+PLAY [Install Kibana] *********************************************************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ********************************************************************************************************************************************************************************************************************
+ok: [kibana]
+
+TASK [Download Kibana] ********************************************************************************************************************************************************************************************************************
+ok: [kibana]
+
+TASK [Create directory for Kibana] ********************************************************************************************************************************************************************************************************
+ok: [kibana]
+
+TASK [Extract Kibana in selected directory] ***********************************************************************************************************************************************************************************************
+ok: [kibana]
+
+TASK [Generate configuration whith parameters] ********************************************************************************************************************************************************************************************
+ok: [kibana]
+
+PLAY RECAP ********************************************************************************************************************************************************************************************************************************
+elastic                    : ok=9    changed=0    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0
+kibana                     : ok=10   changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
+```
+
+9. (todo после мерджа в main) [./playbook/README.md](https://example.com)
+
+10. Ссылка на готовый playbook: (todo после мерджа в main) [./playbook/site.yml](https://example.com)
+```yamlex
+---
+- name: Install Java
+  hosts: all
+  tasks:
+    - name: Set facts for Java 11 vars
+      set_fact:
+        java_home: "/opt/jdk/{{ java_jdk_version }}"
+      tags: java
+    - name: Upload .tar.gz file containing binaries from local storage
+      copy:
+        src: "{{ java_oracle_jdk_package }}"
+        dest: "/tmp/jdk-{{ java_jdk_version }}.tar.gz"
+      register: download_java_binaries
+      until: download_java_binaries is succeeded
+      tags: java
+    - name: Ensure installation dir exists
+      file:
+        state: directory
+        path: "{{ java_home }}"
+      tags: java
+    - name: Extract java in the installation directory
+      unarchive:
+        copy: false
+        src: "/tmp/jdk-{{ java_jdk_version }}.tar.gz"
+        dest: "{{ java_home }}"
+        extra_opts: [--strip-components=1]
+        creates: "{{ java_home }}/bin/java"
+      tags:
+        - java
+      ignore_errors: "{{ ansible_check_mode }}"
+    - name: Export environment variables
+      template:
+        src: jdk.sh.j2
+        dest: /etc/profile.d/jdk.sh
+      tags: java
+- name: Install Elasticsearch
+  hosts: elasticsearch
+  tasks:
+    - name: Upload .tar.gz Elasticsearch from local storage
+      copy:
+        src: "{{ elastic_package }}"
+        dest: "/tmp/elasticsearch-{{ elastic_version }}-linux-x86_64.tar.gz"
+      register: get_elastic
+      until: get_elastic is succeeded
+      tags: elastic
+    - name: Create directrory for Elasticsearch
+      file:
+        state: directory
+        path: "{{ elastic_home }}"
+      tags: elastic
+    - name: Extract Elasticsearch in the installation directory
+      unarchive:
+        copy: false
+        src: "/tmp/elasticsearch-{{ elastic_version }}-linux-x86_64.tar.gz"
+        dest: "{{ elastic_home }}"
+        extra_opts: [--strip-components=1]
+        creates: "{{ elastic_home }}/bin/elasticsearch"
+      ignore_errors: "{{ ansible_check_mode }}"
+      tags:
+        - elastic
+    - name: Set environment Elastic
+      template:
+        src: templates/elk.sh.j2
+        dest: /etc/profile.d/elk.sh
+      tags: elastic
+- name: Install Kibana
+  hosts: kibana
+  tasks:
+    - name: Download Kibana
+      copy:
+        src: "{{ kibana_package }}"
+        dest: "/tmp/kibana-{{ kibana_version }}-linux-x86_64.tar.gz"
+    - name: Create directory for Kibana
+      file:
+        state: directory
+        path: "{{ kibana_home }}"
+    - name: Extract Kibana in selected directory
+      unarchive:
+        copy: false
+        src: "/tmp/kibana-{{ kibana_version }}-linux-x86_64.tar.gz"
+        dest: "{{ kibana_home }}"
+      ignore_errors: "{{ ansible_check_mode }}"
+    - name: Generate configuration whith parameters
+      template:
+        src: templates/kib.sh.j2
+        dest: /etc/profile.d/kib.sh
+```
