@@ -445,9 +445,9 @@ elastic                    : ok=9    changed=0    unreachable=0    failed=0    s
 kibana                     : ok=10   changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
 ```
 
-9. (todo после мерджа в main) [./playbook/README.md](https://example.com)
+9. [./playbook/README.md](https://github.com/Literis8/devops-netology/blob/b2d456d6e688ba6edfd6ed36ebd45fea57ae05a4/playbook/README.md)
 
-10. Ссылка на готовый playbook: (todo после мерджа в main) [./playbook/site.yml](https://example.com)
+10. Ссылка на готовый playbook: [./playbook/site.yml](https://github.com/Literis8/devops-netology/blob/b2d456d6e688ba6edfd6ed36ebd45fea57ae05a4/playbook/site.yml)
 ```yamlex
 ---
 - name: Install Java
