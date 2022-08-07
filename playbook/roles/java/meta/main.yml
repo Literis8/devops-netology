@@ -1,0 +1,17 @@
+galaxy_info:
+  role_name: my_name  # if absent directory name hosting role is used instead
+  namespace: my_galaxy_namespace  # if absent, author is used instead
+  author: Alexey Metlyakov
+  description: simple install openjdk from remote url
+  company: Netology
+  license: BSD-3-Clause
+  min_ansible_version: 2.1
+  platforms:
+    - name: CentOS
+      versions:
+        - 7
+        - 8
+    - name: ubuntu
+      versions: all
+  galaxy_tags: [java, openjdk]
+dependencies: []

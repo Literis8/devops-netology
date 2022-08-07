@@ -81,13 +81,13 @@ Vagrant.configure("2") do |config|
   #   apt-get install -y apache2
   # SHELL
 
-  config.vm.provision "shell", inline: <<-SHELL
+  config.vm.provision "shell", keep_color: true, inline: <<-SHELL
     apt-get update
 
   ### Установка docker
     echo '======= installing docker ======='
-    apt-get install linux-image-extra-$(uname -r) linux-image-extra-virtual
-    apt-get install apt-transport-https ca-certificates curl software-properties-common
+    apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
+    apt-get install -y apt-transport-https ca-certificates curl software-properties-common
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
     add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
     apt-get update && apt-cache policy docker-ce
@@ -96,10 +96,10 @@ Vagrant.configure("2") do |config|
     echo '======= docker installation complete ======='
 
   ### Установка docker-compose
-    echo '======= installing docker-compose ======='
-    curl -SL https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
-    echo '======= docker-compose installation complete ======='
+  #  echo '======= installing docker-compose ======='
+  #  curl -SL https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+  #  chmod +x /usr/local/bin/docker-compose
+  #  echo '======= docker-compose installation complete ======='
 
   ### Установка Yandex.Cloud
   #  echo '======= installing yc ======='
@@ -114,10 +114,12 @@ Vagrant.configure("2") do |config|
   #  terraform version
   #  echo '======= Terraform installation complete ======='
 
-  ### Установка Ansible
+  ### Установка Ansible и molecule
     echo '======= installing Ansible ======='
-    apt-get install -y ansible ansible-lint
+    apt-get install -y pip
+    pip3 install ansible molecule molecule-docker
     ansible --version
+    molecule --version
     echo '======= Ansible installation complete ======='
 
   ### Установка Golang
@@ -126,12 +128,12 @@ Vagrant.configure("2") do |config|
   #  go version
   #  echo '======= GoLang installation complete ======='
 
-  ### Установка toriptables2
-    echo '======= installing toriptables2 ======='
-    apt-get install -y tor python2
-    wget https://raw.githubusercontent.com/ruped24/toriptables2/master/toriptables2.py
-    chmod 755 toriptables2.py
-    ./toriptables2.py -l
-    echo '======= toriptables2 installation complete ======='
+  ### Установка и запуск toriptables2
+  #  echo '======= installing toriptables2 ======='
+  #  apt-get install -y tor python2
+  #  wget https://raw.githubusercontent.com/ruped24/toriptables2/master/toriptables2.py
+  #  chmod 755 toriptables2.py
+  #  ./toriptables2.py -l
+  #  echo '======= toriptables2 installation complete ======='
   SHELL
 end

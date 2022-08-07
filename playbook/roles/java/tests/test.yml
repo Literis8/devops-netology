@@ -1,0 +1,4 @@
+---
+- hosts: localhost
+  roles:
+    - mnt-homeworks-ansible
