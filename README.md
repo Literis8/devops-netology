@@ -870,5 +870,7 @@ elasticsearch              : ok=10   changed=2    unreachable=0    failed=0    s
 kibana                     : ok=10   changed=4    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
 ```
 10. Репозитории выложены.
-11. Ссылка на репозиторий с playbook, ссылка на репозиторий с elastic-role, ссылка на репозиторий kibana-role.
+11. [Ссылка на репозиторий с playbook](https://github.com/Literis8/devops-netology/tree/lect8.3/playbook), 
+[ссылка на репозиторий с elastic-role](https://github.com/Literis8/elastic-role),
+[ссылка на репозиторий kibana-role](https://github.com/Literis8/kibana-role).
 

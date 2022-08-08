@@ -1,2 +1,26 @@
 ---
+- name: Download Kibana
+  copy:
+    src: "{{ kibana_package }}"
+    dest: "/tmp/kibana-{{ kibana_version }}-linux-x86_64.tar.gz"
+  register: get_kibana
+  until: get_kibana is succeeded
+  tags: kibana
+- name: Create directory for Kibana
+  file:
+    state: directory
+    path: "{{ kibana_home }}"
+  tags: kibana
+- name: Extract Kibana in selected directory
+  unarchive:
+    copy: false
+    src: "/tmp/kibana-{{ kibana_version }}-linux-x86_64.tar.gz"
+    dest: "{{ kibana_home }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+  tags: kibana
+- name: Generate configuration whith parameters
+  template:
+    src: templates/kib.sh.j2
+    dest: /etc/profile.d/kib.sh
+  tags: kibana
 # tasks file for kibana
