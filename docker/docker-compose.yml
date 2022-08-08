@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  elasticsearch:
+    build:
+      dockerfile: Dockerfile
+    image: ubuntu-python
+    container_name: elasticsearch
+    restart: always
+    command: "sleep 6000000"
+    networks:
+      - my-brige
+  kibana:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ubuntu-python
+    container_name: kibana
+    restart: always
+    command: "sleep 6000000"
+    networks:
+      - my-brige
+
+networks:
+  my-brige:
+    driver: bridge

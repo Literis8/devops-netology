@@ -12,7 +12,6 @@
       path: "{{ elastic_home }}"
     tags: elastic
   - name: Extract Elasticsearch in the installation directory
-    become: true
     unarchive:
       copy: false
       src: "/tmp/elasticsearch-{{ elastic_version }}-linux-x86_64.tar.gz"
@@ -23,7 +22,6 @@
       - skip_ansible_lint
       - elastic
   - name: Set environment Elastic
-    become: yes
     template:
       src: templates/elk.sh.j2
       dest: /etc/profile.d/elk.sh

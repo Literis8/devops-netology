@@ -1,6 +1,3 @@
 ---
-  jdk_distr_type: remote
-  jdk_url: "{{ openjdk[11] }}"
-  jdk_distr_name: openjdk-11-linux.tar.gz
-  jdk_folder: "{{ jdk_distr_name.split('-')[:2] | join('-')  }}"
-  java_home: "/opt/jdk/{{ jdk_folder }}"
+java_jdk_version: 11.0.16
+jdk_distr_name: ./files/jdk-{{ java_jdk_version }}_linux-x64_bin.tar.gz
