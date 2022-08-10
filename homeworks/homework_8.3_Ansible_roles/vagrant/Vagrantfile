@@ -1,0 +1,139 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure("2") do |config|
+  # The most common configuration options are documented and commented below.
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
+
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://vagrantcloud.com/search.
+  config.vm.box = "bento/ubuntu-20.04"
+
+  # Disable automatic box update checking. If you disable this, then
+  # boxes will only be checked for updates when the user runs
+  # `vagrant box outdated`. This is not recommended.
+  # config.vm.box_check_update = false
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine. In the example below,
+  # accessing "localhost:8080" will access port 80 on the guest machine.
+  # NOTE: This will enable public access to the opened port
+  # config.vm.network "forwarded_port", guest: 80, host: 8080
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine and only allow access
+  # via 127.0.0.1 to disable public access
+  # config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
+
+  # Create a private network, which allows host-only access to the machine
+  # using a specific IP.
+  # config.vm.network "private_network", ip: "192.168.33.10"
+
+  # Create a public network, which generally matched to bridged network.
+  # Bridged networks make the machine appear as another physical device on
+  # your network.
+  config.vm.network "public_network"
+
+  # Share an additional folder to the guest VM. The first argument is
+  # the path on the host to the actual folder. The second argument is
+  # the path on the guest to mount the folder. And the optional third
+  # argument is a set of non-required options.
+  # config.vm.synced_folder "../data", "/vagrant_data"
+  config.vm.synced_folder "..", "/devops-netology"
+
+  # Provider-specific configuration so you can fine-tune various
+  # backing providers for Vagrant. These expose provider-specific options.
+  # Example for VirtualBox:
+  #
+  # config.vm.provider "virtualbox" do |vb|
+  #   # Display the VirtualBox GUI when booting the machine
+  #   vb.gui = true
+  #
+  #   # Customize the amount of memory on the VM:
+  #   vb.memory = "1024"
+  # end
+  config.vm.provider "virtualbox" do |vb|
+    vb.customize ["modifyvm", :id, "--nested-hw-virt", "on"]
+  end
+
+  #
+  # View the documentation for the provider you are using for more
+  # information on available options.
+  ### конфигурация добавления дисков для задания
+  #config.vm.provider :virtualbox do |vb|
+  #  lvm_experiments_disk0_path = "/tmp/lvm_experiments_disk0.vmdk"
+  #  lvm_experiments_disk1_path = "/tmp/lvm_experiments_disk1.vmdk"
+  #  vb.customize ['createmedium', '--filename', lvm_experiments_disk0_path, '--size', 2560]
+  #  vb.customize ['createmedium', '--filename', lvm_experiments_disk1_path, '--size', 2560]
+  #  vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', lvm_experiments_disk0_path]
+  #  vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 2, '--device', 0, '--type', 'hdd', '--medium', lvm_experiments_disk1_path]
+  #end
+  # Enable provisioning with a shell script. Additional provisioners such as
+  # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
+  # documentation for more information about their specific syntax and use.
+  # config.vm.provision "shell", inline: <<-SHELL
+  #   apt-get update
+  #   apt-get install -y apache2
+  # SHELL
+
+  config.vm.provision "shell", keep_color: true, inline: <<-SHELL
+    apt-get update
+
+  ### Установка docker
+    echo '======= installing docker ======='
+    apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
+    apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
+    apt-get update && apt-cache policy docker-ce
+    sudo apt-get install -y docker-ce
+    usermod -aG docker vagrant
+    echo '======= docker installation complete ======='
+
+  ### Установка docker-compose
+    echo '======= installing docker-compose ======='
+    curl -SL https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
+    echo '======= docker-compose installation complete ======='
+
+  ### Установка Yandex.Cloud
+  #  echo '======= installing yc ======='
+  #  curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+  #  echo '======= yc installation complete ======='
+
+  ### Установка Terraform
+  #  echo '======= installing Terraform ======='
+  #  curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+  #  sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+  #  sudo apt-get update && sudo apt-get install terraform
+  #  terraform version
+  #  echo '======= Terraform installation complete ======='
+
+  ### Установка Ansible и molecule
+    echo '======= installing Ansible ======='
+    apt-get install -y pip
+    pip3 install ansible molecule molecule-docker
+    ansible --version
+    molecule --version
+    echo '======= Ansible installation complete ======='
+
+  ### Установка Golang
+  #  echo '======= installing GoLang ======='
+  #  apt-get install -y golang
+  #  go version
+  #  echo '======= GoLang installation complete ======='
+
+  ### Установка и запуск toriptables2
+  #  echo '======= installing toriptables2 ======='
+  #  apt-get install -y tor python2
+  #  wget https://raw.githubusercontent.com/ruped24/toriptables2/master/toriptables2.py
+  #  chmod 755 toriptables2.py
+  #  ./toriptables2.py -l
+  #  echo '======= toriptables2 installation complete ======='
+  SHELL
+end
