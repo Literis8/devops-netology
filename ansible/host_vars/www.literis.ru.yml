@@ -1,0 +1,8 @@
+---
+  domain: "literis.ru"
+  download_url: "http://wordpress.org/latest.tar.gz"
+  wpdirectory: "/var/www"
+  mysql_db: "wordpress"
+  mysql_user: "wordpress"
+  mysql_password: "wordpress"
+  mysql_server: "db01.literis.ru"

@@ -1,0 +1,28 @@
+---
+- hosts: nginx
+  become: yes
+  roles:
+    - letsencrypt
+  tags:
+    - certbot
+
+- hosts: nginx
+  become: yes
+  roles:
+    - nginx
+  tags:
+    - nginx
+
+- hosts: mysql
+  become: yes
+  roles:
+    - geerlingguy.mysql
+  tags:
+    - mysql
+
+- hosts: wordpress
+  become: yes
+  roles:
+    - wordpress
+  tags:
+    - wordpress

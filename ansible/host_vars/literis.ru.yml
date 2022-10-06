@@ -1,0 +1,7 @@
+---
+domain_name:
+   - www.literis.ru
+   - gitlab.literis.ru
+   - grafana.literis.ru
+   - prometheus.literis.ru
+   - alertmanager.literis.ru

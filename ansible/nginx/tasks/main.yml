@@ -1,0 +1,53 @@
+---
+# tasks file for nginx
+- name: nginx | Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: nginx | Install Nginx Web Server
+  apt:
+    name: nginx
+    state: latest
+  notify:
+    - nginx systemd
+
+- name: nginx | Replace nginx.conf
+  template:
+    src: templates/nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+
+- name: nginx | Remove default nginx config
+  file:
+    name: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: nginx | adding http config and https redirect
+  template:
+    src: templates/nginx-http.conf.j2
+    dest: /etc/nginx/sites-enabled/http
+
+- name: nginx | adding wordpress site
+  template:
+    src: templates/wordpress.j2
+    dest: /etc/nginx/sites-enabled/wordpress
+
+- name: nginx | adding gitlab site
+  template:
+    src: templates/gitlab.j2
+    dest: /etc/nginx/sites-enabled/gitlab
+
+- name: nginx | adding prometheus site
+  template:
+    src: templates/prometheus.j2
+    dest: /etc/nginx/sites-enabled/prometheus
+
+- name: nginx | adding alertmanager site
+  template:
+    src: templates/alertmanager.j2
+    dest: /etc/nginx/sites-enabled/alertmanager
+
+- name: nginx | Reload nginx to activate specified site
+  service:
+    name: nginx
+    state: restarted

@@ -1,0 +1,83 @@
+---
+# tasks file for letsencrypt
+- name: letsencrypt | Install Nginx Web Server
+  apt:
+    name: nginx
+    state: latest
+
+- name: letsencrypt | Install Let's Encrypt client
+  apt:
+    name: letsencrypt
+    state: latest
+
+- name: letsencrypt | create letsencrypt directory
+  file:
+    name: /var/www/letsencrypt
+    state: directory
+
+- name: letsencrypt | adding http config and https redirect
+  template:
+    src: ../nginx/templates/nginx-http.conf.j2
+    dest: /etc/nginx/sites-enabled/http
+
+- name: nginx | Remove default nginx config
+  file:
+    name: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: letsencrypt | Reload nginx to activate specified site
+  service:
+    name: nginx
+    state: restarted
+
+- name: letsencrypt | Install nginx plugin
+  apt:
+    name=python3-certbot-nginx
+    state=latest
+
+- name: letsencrypt | Create or renew sertificate
+  command: >
+    certbot certonly \
+    -n \
+    --nginx \
+    -d "{{ item }}" \
+    -w /var/www/letsencrypt \
+    -m literis8@gmail.com \
+    --agree-tos \ 
+    --no-eff-email \
+    --no-autorenew \
+    --reinstall \
+    --test-cert
+  loop:
+    - "{{ domain_name.wordpress }}"
+    - "{{ domain_name.wordpress_www }}"
+    - "{{ domain_name.gitlab }}"
+    - "{{ domain_name.grafana }}"
+    - "{{ domain_name.prometheus }}"
+    - "{{ domain_name.alertmanager }}"
+  args:
+    creates: /etc/letsencrypt/live/{{ domain_name }}
+
+- name: letsencrypt | Generate dhparams
+  shell: openssl dhparam -out /etc/nginx/dhparams.pem 2048
+  args:
+    creates: /etc/nginx/dhparams.pem
+
+- name: letsencrypt | Reload nginx to activate specified site
+  service:
+    name: nginx
+    state: restarted
+
+# отключил крон так как неделю у меня машина не будет онлайн
+#- name: letsencrypt | Add letsencrypt cronjob for cert renewal
+#  cron:
+#    name: letsencrypt_renewal
+#    special_time: weekly
+#    job: letsencrypt --renew certonly -n --webroot --nginx -d "{{ item }}" -w /var/www/letsencrypt -m literis8@gmail.com --agree-tos --no-eff-email --no-autorenew --reinstall && service nginx reload
+#  loop:
+#    - "{{ domain_name.wordpress }}"
+#    - "{{ domain_name.wordpress_www }}"
+#    - "{{ domain_name.gitlab }}"
+#    - "{{ domain_name.grafana }}"
+#    - "{{ domain_name.prometheus }}"
+#    - "{{ domain_name.alertmanager }}"

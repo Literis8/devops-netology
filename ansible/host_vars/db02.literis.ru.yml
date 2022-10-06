@@ -1,0 +1,30 @@
+---
+### role mysql
+
+# Databases.
+mysql_databases:
+  - name: wordpress
+    collation: utf8_general_ci
+    encoding: utf8
+    replicate: 1
+
+# Users.
+mysql_users:
+  - name: wordpress
+    host: '%'
+    password: wordpress
+    priv: '*.*:ALL PRIVILEGES'
+  - name: replicator
+    password: replicator
+    priv: '*.*:REPLICATION SLAVE,REPLICATION CLIENT'
+
+# Replication settings (replication is only enabled if master/user have values).
+mysql_server_id: "2"
+mysql_max_binlog_size: "100M"
+mysql_binlog_format: "ROW"
+mysql_expire_logs_days: "10"
+mysql_replication_role: slave
+mysql_replication_master: 'db01.literis.ru'
+mysql_replication_user:
+  name: replicator
+  password: replicator

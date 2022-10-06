@@ -1,0 +1,15 @@
+variable "YC_TOKEN" {
+  default = "******************************"
+}
+variable "YC_CLOUD_ID" {
+  default = "******************************"
+}
+variable "YC_FOLDER_ID" {
+  default = "******************************"
+}
+variable "BUCKET_NAME" {
+  default = "******************************"
+}
+variable "YC_SUBNET_ID" {
+  default = "******************************"
+}

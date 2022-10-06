@@ -85,34 +85,47 @@ Vagrant.configure("2") do |config|
     apt-get update
 
   ### Установка docker
-    echo '======= installing docker ======='
-    apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
-    apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
-    apt-get update && apt-cache policy docker-ce
-    sudo apt-get install -y docker-ce
-    usermod -aG docker vagrant
-    echo '======= docker installation complete ======='
+  #  echo '======= installing docker ======='
+  #  apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
+  #  apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+  #  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  #  add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
+  #  apt-get update && apt-cache policy docker-ce
+  #  sudo apt-get install -y docker-ce
+  #  usermod -aG docker vagrant
+  #  echo '======= docker installation complete ======='
 
   ### Установка docker-compose
-    echo '======= installing docker-compose ======='
-    curl -SL https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
-    echo '======= docker-compose installation complete ======='
+  #  echo '======= installing docker-compose ======='
+  #  curl -SL https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+  #  chmod +x /usr/local/bin/docker-compose
+  #  echo '======= docker-compose installation complete ======='
 
   ### Установка Yandex.Cloud
-  #  echo '======= installing yc ======='
-  #  curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
-  #  echo '======= yc installation complete ======='
+    echo '======= installing yc ======='
+    curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+    echo '======= yc installation complete ======='
+
+  ### Установка и запуск toriptables3
+  #  echo '======= installing toriptables3 ======='
+  #  apt-get install -y tor
+  #  wget https://raw.githubusercontent.com/ruped24/toriptables3/master/toriptables3.py
+  #  chmod 755 toriptables3.py
+  #  python3 ./toriptables3.py -l
+  #  curl 2ip.ua
+  #  echo '======= toriptables2 installation complete ======='
 
   ### Установка Terraform
-  #  echo '======= installing Terraform ======='
+    echo '======= installing Terraform ======='
+    apt-get -y install unzip
+    wget https://hashicorp-releases.yandexcloud.net/terraform/1.2.8/terraform_1.2.8_linux_amd64.zip
+    unzip terraform_1.2.8_linux_amd64.zip -d /usr/local/bin/
+  #  wget https://hashicorp-releases.yandexcloud.net/terraform/1.2.8/terraform_1.2.8_linux_amd64.zip
   #  curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
   #  sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
   #  sudo apt-get update && sudo apt-get install terraform
-  #  terraform version
-  #  echo '======= Terraform installation complete ======='
+    terraform version
+    echo '======= Terraform installation complete ======='
 
   ### Установка Ansible и molecule
     echo '======= installing Ansible ======='
@@ -127,13 +140,5 @@ Vagrant.configure("2") do |config|
   #  apt-get install -y golang
   #  go version
   #  echo '======= GoLang installation complete ======='
-
-  ### Установка и запуск toriptables2
-  #  echo '======= installing toriptables2 ======='
-  #  apt-get install -y tor python2
-  #  wget https://raw.githubusercontent.com/ruped24/toriptables2/master/toriptables2.py
-  #  chmod 755 toriptables2.py
-  #  ./toriptables2.py -l
-  #  echo '======= toriptables2 installation complete ======='
   SHELL
 end

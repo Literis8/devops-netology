@@ -53,3 +53,8 @@ terraform/backend.conf
 
 # Ignore terraform lock file
 .terraform.lock.hcl
+
+# Local secret file
+.secret
+
+work

@@ -1,0 +1,18 @@
+---
+domain_name:
+   wordpress: "stage.literis.ru"
+   wordpress_www: "www-stage.literis.ru"
+   gitlab: "gitlab-stage.literis.ru"
+   grafana: "grafana-stage.literis.ru"
+   prometheus: "prometheus-stage.literis.ru"
+   alertmanager: "alertmanager-stage.literis.ru"
+
+internal_ip_address:
+  wordpress: "192.168.20.103"
+  wordpress_www: "192.168.20.103"
+  gitlab: "127.0.0.1"
+  grafana: "127.0.0.1"
+  prometheus: "127.0.0.1"
+  alertmanager: "127.0.0.1"
+  db01: "192.168.20.101"
+  db02: "192.168.20.102"
