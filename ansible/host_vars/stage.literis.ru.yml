@@ -10,7 +10,7 @@ domain_name:
 internal_ip_address:
   wordpress: "192.168.20.103"
   wordpress_www: "192.168.20.103"
-  gitlab: "127.0.0.1"
+  gitlab: "192.168.20.104"
   grafana: "127.0.0.1"
   prometheus: "127.0.0.1"
   alertmanager: "127.0.0.1"

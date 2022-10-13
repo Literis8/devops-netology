@@ -1,0 +1,8 @@
+---
+- hosts: runner
+  become: yes
+  roles:
+    - riemers.gitlab-runner
+    - node-exporter
+  tags:
+    - runner

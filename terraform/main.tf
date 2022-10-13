@@ -71,9 +71,9 @@ resource "yandex_compute_instance" "db02" {
   }
 }
 
-resource "yandex_compute_instance" "www" {
-  name = "www"
-  hostname = "www.literis.ru"
+resource "yandex_compute_instance" "app" {
+  name = "app"
+  hostname = "app.literis.ru"
   allow_stopping_for_update = true
   boot_disk {
     initialize_params {
@@ -95,6 +95,78 @@ resource "yandex_compute_instance" "www" {
   }
 }
 
+resource "yandex_compute_instance" "gitlab" {
+  name = "gitlab"
+  hostname = "gitlab.literis.ru"
+  allow_stopping_for_update = true
+  boot_disk {
+    initialize_params {
+      image_id = "fd8f1tik9a7ap9ik2dg1"
+      size = 40
+    }
+  }
+  network_interface {
+    subnet_id = local.subnet_id[terraform.workspace]
+    nat = false
+    ip_address = "${local.subnet_ip[terraform.workspace]}104"
+  }
+  resources {
+    cores  = 4
+    memory = 4
+  }
+  metadata = {
+    ssh-keys = "ubuntu:${file("~/.ssh/id_rsa.pub")}"
+    serial-port-enable = 1
+  }
+}
+
+resource "yandex_compute_instance" "runner" {
+  name = "runner"
+  hostname = "runner.literis.ru"
+  allow_stopping_for_update = true
+  boot_disk {
+    initialize_params {
+      image_id = "fd8f1tik9a7ap9ik2dg1"
+    }
+  }
+  network_interface {
+    subnet_id = local.subnet_id[terraform.workspace]
+    nat = false
+    ip_address = "${local.subnet_ip[terraform.workspace]}105"
+  }
+  resources {
+    cores  = 4
+    memory = 4
+  }
+  metadata = {
+    ssh-keys = "ubuntu:${file("~/.ssh/id_rsa.pub")}"
+    serial-port-enable = 1
+  }
+}
+
+resource "yandex_compute_instance" "monitoring" {
+  name = "monitoring"
+  hostname = "monitoring.literis.ru"
+  allow_stopping_for_update = true
+  boot_disk {
+    initialize_params {
+      image_id = "fd8f1tik9a7ap9ik2dg1"
+    }
+  }
+  network_interface {
+    subnet_id = local.subnet_id[terraform.workspace]
+    nat = false
+    ip_address = "${local.subnet_ip[terraform.workspace]}106"
+  }
+  resources {
+    cores  = 4
+    memory = 4
+  }
+  metadata = {
+    ssh-keys = "ubuntu:${file("~/.ssh/id_rsa.pub")}"
+    serial-port-enable = 1
+  }
+}
 #resource "yandex_vpc_network" "my-network" {
 #  name = "my-network"
 #}

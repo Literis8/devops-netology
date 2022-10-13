@@ -11,11 +11,23 @@ resource "local_file" "inventory" {
     db02.literis.ru ansible_host=${yandex_compute_instance.db02.network_interface.0.ip_address} ansible_user=ubuntu
 
     [wordpress]
-    www.literis.ru ansible_host=${yandex_compute_instance.www.network_interface.0.ip_address} ansible_user=ubuntu
+    app.literis.ru ansible_host=${yandex_compute_instance.app.network_interface.0.ip_address} ansible_user=ubuntu
+
+    [gitlab]
+    gitlab.literis.ru ansible_host=${yandex_compute_instance.gitlab.network_interface.0.ip_address} ansible_user=ubuntu
+
+    [runner]
+    runner.literis.ru ansible_host=${yandex_compute_instance.runner.network_interface.0.ip_address} ansible_user=ubuntu
+
+    [monitoring]
+    monitoring.literis.ru ansible_host=${yandex_compute_instance.monitoring.network_interface.0.ip_address} ansible_user=ubuntu
 
     [nodes:children]
     mysql
     wordpress
+    gitlab
+    runner
+    monitoring
 
     [nodes:vars]
     ansible_ssh_common_args= "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -J ubuntu@${yandex_compute_instance.nginx.network_interface.0.nat_ip_address}"

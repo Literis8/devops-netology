@@ -1,0 +1,33 @@
+---
+# tasks file for gitlabrestore
+- name: Copy backup file to remote machine
+  copy:
+    src: "templates/1665312353_2022_10_09_15.4.2_gitlab_backup.tar"
+    dest: "{{ gitlab_dir.data }}/backups/"
+    owner: git
+    group:  git
+    mode: 0655
+
+- name: Copy gitlab-secrets.json to remote machine
+  copy:
+    src: "templates/gitlab-secrets.json"
+    dest: "{{ gitlab_dir.config }}/gitlab-secrets.json"
+    owner: git
+    group:  git
+    mode: 0644
+
+- name: Stop gitlab services
+  shell: gitlab-ctl stop {{ item }}
+  with_items:
+    - unicorn
+    - sidekiq
+
+- name: Backup restore
+  shell: bash -c " yes yes | gitlab-rake gitlab:backup:restore"
+
+- name: Gitlab reconfigure
+  shell: gitlab-ctl reconfigure
+
+- name: Start gitlab services
+  shell: gitlab-ctl start
+  ignore_errors: true

@@ -7,7 +7,7 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsaf
 
 
 upstream alertmanager {
-    server {{ internal_ip_address.alertmanager }};
+    server {{ internal_ip_address.alertmanager }}:9093;
 }
 
 server {
@@ -30,7 +30,7 @@ server {
     ssl_prefer_server_ciphers on;
 
     location / {
-    proxy_pass https://{{ internal_ip_address.alertmanager }};
+    proxy_pass http://{{ internal_ip_address.alertmanager }}:9093;
     proxy_set_header Host $host:$server_port;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

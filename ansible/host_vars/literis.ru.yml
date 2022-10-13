@@ -1,7 +1,18 @@
 ---
 domain_name:
-   - www.literis.ru
-   - gitlab.literis.ru
-   - grafana.literis.ru
-   - prometheus.literis.ru
-   - alertmanager.literis.ru
+   wordpress: "literis.ru"
+   wordpress_www: "www.literis.ru"
+   gitlab: "gitlab.literis.ru"
+   grafana: "grafana.literis.ru"
+   prometheus: "prometheus.literis.ru"
+   alertmanager: "alertmanager.literis.ru"
+
+internal_ip_address:
+  wordpress: "192.168.10.103"
+  wordpress_www: "192.168.10.103"
+  gitlab: "192.168.10.104"
+  grafana: "192.168.10.106"
+  prometheus: "192.168.10.106"
+  alertmanager: "192.168.10.106"
+  db01: "192.168.10.101"
+  db02: "192.168.10.102"

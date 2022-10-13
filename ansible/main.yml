@@ -3,6 +3,7 @@
   become: yes
   roles:
     - letsencrypt
+    - node-exporter
   tags:
     - certbot
 
@@ -10,6 +11,7 @@
   become: yes
   roles:
     - nginx
+    - node-exporter
   tags:
     - nginx
 
@@ -17,6 +19,7 @@
   become: yes
   roles:
     - geerlingguy.mysql
+    - node-exporter
   tags:
     - mysql
 
@@ -24,5 +27,24 @@
   become: yes
   roles:
     - wordpress
+    - node-exporter
   tags:
     - wordpress
+
+- hosts: gitlab
+  become: yes
+  roles:
+    - geerlingguy.gitlab
+    - node-exporter
+  tags:
+    - gitlab
+
+- hosts: monitoring
+  become: yes
+  roles:
+    - prometheus
+    - alertmanager
+    - node-exporter
+    - grafana
+  tags:
+    - monitoring

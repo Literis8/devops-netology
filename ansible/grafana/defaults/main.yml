@@ -1,0 +1,5 @@
+---
+# defaults file for grafana
+grafana_version : 9.0.3
+grafana_provision_dashboards: true
+grafana_provisioning_synced: true

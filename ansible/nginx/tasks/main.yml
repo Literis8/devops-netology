@@ -47,6 +47,11 @@
     src: templates/alertmanager.j2
     dest: /etc/nginx/sites-enabled/alertmanager
 
+- name: nginx | adding grafana site
+  template:
+    src: templates/grafana.j2
+    dest: /etc/nginx/sites-enabled/grafana
+
 - name: nginx | Reload nginx to activate specified site
   service:
     name: nginx

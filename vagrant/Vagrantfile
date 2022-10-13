@@ -130,7 +130,7 @@ Vagrant.configure("2") do |config|
   ### Установка Ansible и molecule
     echo '======= installing Ansible ======='
     apt-get install -y pip
-    pip3 install ansible molecule molecule-docker
+    pip3 install ansible molecule molecule-docker jmespath
     ansible --version
     molecule --version
     echo '======= Ansible installation complete ======='

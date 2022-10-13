@@ -1,0 +1,5 @@
+---
+# defaults file for gitlabrestore
+gitlab_dir:
+  data: "/var/opt/gitlab/"
+  config: "/etc/gitlab/"

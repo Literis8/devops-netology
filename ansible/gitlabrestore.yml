@@ -1,0 +1,7 @@
+---
+- hosts: gitlab
+  become: yes
+  roles:
+    - gitlabrestore
+  tags:
+    - gitlabrestore
