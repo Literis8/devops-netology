@@ -141,14 +141,14 @@ deploy-job:
     - rsync -vz -e "ssh -o StrictHostKeyChecking=no" ./* ubuntu@app.literis.ru:/var/www/wordpress/
     - ssh -o StrictHostKeyChecking=no ubuntu@app.literis.ru sudo chown www-data:www-data /var/www/wordpress/ -R
 ```
-    - [ ] Получена резервная копия
+    - [X] Получена резервная копия
 ```shell
 cp -r /var/www/wordpress/ ~/wordperess
 cd ~/wordpress
 git init 
 ```
-    - [ ] Создана роль для развертывания резервной копии гитлаб.
-  - [ ] Установка Prometheus, Alert Manager, Node Exporter и Grafana
+    - [X] Создана роль для развертывания резервной копии гитлаб.
+  - [X] Установка Prometheus, Alert Manager, Node Exporter и Grafana
     - [X] Необходимо разработать Ansible роль для установки Prometheus, Alert Manager и Grafana. Имя сервера: 
 monitoring.you.domain Характеристики: 4vCPU, 4 RAM, Internal address.
     - [X] Интерфейсы Prometheus, Alert Manager и Grafana доступены по https.
@@ -163,15 +163,15 @@ https://alertmanager.you.domain (Alert Manager)
     - [X] В Grafana есть дашборд отображающий метрики из Node Exporter по всем серверам.
     - [X] В Grafana есть дашборд отображающий метрики из MySQL (*).
     - [X] В Grafana есть дашборд отображающий метрики из WordPress (*).
-- [ ] необходимо для сдачи задания
-  - [ ] Репозиторий со всеми Terraform манифестами и готовность продемонстрировать создание всех ресурсов с нуля.
-  - [ ] Репозиторий со всеми Ansible ролями и готовность продемонстрировать установку всех сервисов с нуля.
-  - [ ] Скриншоты веб-интерфейсов всех сервисов работающих по HTTPS на вашем доменном имени. https://www.you.domain (WordPress)
+- [X] необходимо для сдачи задания
+  - [X] Репозиторий со всеми Terraform манифестами и готовность продемонстрировать создание всех ресурсов с нуля.
+  - [X] Репозиторий со всеми Ansible ролями и готовность продемонстрировать установку всех сервисов с нуля.
+  - [X] Скриншоты веб-интерфейсов всех сервисов работающих по HTTPS на вашем доменном имени. https://www.you.domain (WordPress)
 https://gitlab.you.domain (Gitlab)
 https://grafana.you.domain (Grafana)
 https://prometheus.you.domain (Prometheus)
 https://alertmanager.you.domain (Alert Manager)
-  - [ ] Все репозитории рекомендуется хранить на одном из ресурсов (github.com или gitlab.com).
+  - [X] Все репозитории рекомендуется хранить на одном из ресурсов (github.com или gitlab.com).
 
 
 
