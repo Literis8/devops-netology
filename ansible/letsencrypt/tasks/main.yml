@@ -47,7 +47,7 @@
     --no-eff-email \
     --no-autorenew \
     --reinstall \
-    --test-cert
+#    --test-cert
   loop:
     - "{{ domain_name.wordpress }}"
     - "{{ domain_name.wordpress_www }}"

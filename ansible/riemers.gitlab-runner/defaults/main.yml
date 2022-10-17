@@ -22,7 +22,7 @@ gitlab_runner_concurrent: '{{ ansible_processor_vcpus }}'
 # GitLab coordinator URL
 gitlab_runner_coordinator_url: 'http://gitlab.literis.ru'
 # GitLab registration token
-gitlab_runner_registration_token: 'GR1348941wzQ6n8PyjoHYWg-hxWAm'
+gitlab_runner_registration_token: 'GR1348941RPHsnEr9AWmQVuixCqJC'
 
 gitlab_runner_sentry_dsn: ''
 

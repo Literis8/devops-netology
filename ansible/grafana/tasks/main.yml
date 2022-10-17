@@ -83,3 +83,9 @@
   when: grafana_provisioning_synced and grafana_provision_dashboards
   notify:
     - systemd reload
+
+- name: Systemctl Grafana restart
+  systemd:
+    name: grafana-server
+    state: restarted
+    enabled: yes

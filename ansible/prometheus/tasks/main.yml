@@ -66,3 +66,9 @@
     name: prometheus
     state: started
     enabled: yes
+
+- name: Systemctl Prometheus restart
+  systemd:
+    name: prometheus
+    state: restarted
+    enabled: yes

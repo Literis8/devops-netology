@@ -51,21 +51,6 @@
   shell: /usr/sbin/a2dissite 000-default.conf
   notify: restart apache
 
-# возможно не нужно
-#- name: "UFW - Allow HTTP on port 80"
-#  ufw:
-#    rule: allow
-#    port: "80"
-#    proto: tcp
-# WordPress Configuration
-
-# возможно не нужно
-#- name: Set permissions for directories
-#  shell: "/usr/bin/find /var/www/{{ http_host }}/wordpress/ -type d -exec chmod 750 {} \\;"
-
-#- name: Set permissions for files
-#  shell: "/usr/bin/find /var/www/{{ http_host }}/wordpress/ -type f -exec chmod 640 {} \\;"
-
 - name: Set up wp-config
   template:
     src: "templates/wp-config.php.j2"

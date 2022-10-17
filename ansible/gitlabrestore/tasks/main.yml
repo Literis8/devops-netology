@@ -2,7 +2,7 @@
 # tasks file for gitlabrestore
 - name: Copy backup file to remote machine
   copy:
-    src: "templates/1665312353_2022_10_09_15.4.2_gitlab_backup.tar"
+    src: "templates/1666012471_2022_10_17_15.4.2_gitlab_backup.tar"
     dest: "{{ gitlab_dir.data }}/backups/"
     owner: git
     group:  git
@@ -12,6 +12,14 @@
   copy:
     src: "templates/gitlab-secrets.json"
     dest: "{{ gitlab_dir.config }}/gitlab-secrets.json"
+    owner: git
+    group:  git
+    mode: 0644
+
+- name: Copy gitlab.rb to remote machine
+  copy:
+    src: "templates/gitlab.rb"
+    dest: "{{ gitlab_dir.config }}/gitlab.rb"
     owner: git
     group:  git
     mode: 0644

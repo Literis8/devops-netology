@@ -142,6 +142,11 @@ deploy-job:
     - ssh -o StrictHostKeyChecking=no ubuntu@app.literis.ru sudo chown www-data:www-data /var/www/wordpress/ -R
 ```
     - [ ] Получена резервная копия
+```shell
+cp -r /var/www/wordpress/ ~/wordperess
+cd ~/wordpress
+git init 
+```
     - [ ] Создана роль для развертывания резервной копии гитлаб.
   - [ ] Установка Prometheus, Alert Manager, Node Exporter и Grafana
     - [X] Необходимо разработать Ansible роль для установки Prometheus, Alert Manager и Grafana. Имя сервера: 
@@ -156,8 +161,8 @@ https://alertmanager.you.domain (Alert Manager)
     - [X] На всех серверах установлен Node Exporter и его метрики доступны Prometheus.
     - [X] У Alert Manager есть необходимый набор правил для создания алертов.
     - [X] В Grafana есть дашборд отображающий метрики из Node Exporter по всем серверам.
-    - [ ] В Grafana есть дашборд отображающий метрики из MySQL (*).
-    - [ ] В Grafana есть дашборд отображающий метрики из WordPress (*).
+    - [X] В Grafana есть дашборд отображающий метрики из MySQL (*).
+    - [X] В Grafana есть дашборд отображающий метрики из WordPress (*).
 - [ ] необходимо для сдачи задания
   - [ ] Репозиторий со всеми Terraform манифестами и готовность продемонстрировать создание всех ресурсов с нуля.
   - [ ] Репозиторий со всеми Ansible ролями и готовность продемонстрировать установку всех сервисов с нуля.

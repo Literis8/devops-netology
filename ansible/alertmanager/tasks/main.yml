@@ -60,3 +60,9 @@
     name: alertmanager
     state: started
     enabled: yes
+
+- name: Systemctl Alertmanager restart
+  systemd:
+    name: alertmanager
+    state: restarted
+    enabled: yes
